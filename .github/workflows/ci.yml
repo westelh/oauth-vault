@@ -90,7 +90,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
-          tags: "ghcr.io/westelh/ktor-oauth-client:latest"
+          tags: "ghcr.io/${{ env.GITHUB_REPOSITORY }}:latest"
           context: build/docker
           builder: ${{ steps.buildx.outputs.name }}
           platforms: ${{ steps.buildx.outputs.platforms }}
@@ -109,7 +109,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
-          tags: "westelh/oci-billing-exporter:latest"
+          tags: "${{ env.GITHUB_REPOSITORY }}:latest"
           context: build/docker
           builder: ${{ steps.buildx.outputs.name }}
           platforms: ${{ steps.buildx.outputs.platforms }}
@@ -125,10 +125,10 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - name: Set up JDK 17
+    - name: Set up JDK 21
       uses: actions/setup-java@v4
       with:
-        java-version: '17'
+        java-version: '21'
         distribution: 'temurin'
 
     # Generates and submits a dependency graph, enabling Dependabot Alerts for all project dependencies.
