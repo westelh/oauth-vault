@@ -88,7 +88,6 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           tags: "ghcr.io/${{ github.repository }}:latest"
-          context: build/docker
           builder: ${{ steps.buildx.outputs.name }}
           platforms: ${{ steps.buildx.outputs.platforms }}
           # For pull requests, export results to the build cache.
@@ -107,7 +106,6 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           tags: "${{ github.repository }}:latest"
-          context: build/docker
           builder: ${{ steps.buildx.outputs.name }}
           platforms: ${{ steps.buildx.outputs.platforms }}
           # For pull requests, export results to the build cache.
