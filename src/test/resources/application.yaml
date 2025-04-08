@@ -1,0 +1,24 @@
+ktor:
+    application:
+        modules:
+            - dev.westelh.ApplicationKt.module
+    development: true
+    deployment:
+        host: localhost
+        port: 8080
+        watch:
+            - classes
+
+google:
+    oauth:
+        clientId: "dummy"
+        clientSecret: "dummy"
+
+vault:
+    addr: "https://vault.example.com"
+    token: ""
+    kv: "kv"
+
+    jwt:
+        issuer: "dummy"
+        audience: "dummy"

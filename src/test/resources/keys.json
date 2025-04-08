@@ -1,0 +1,28 @@
+{
+  "keys": [
+    {
+      "use": "sig",
+      "kty": "RSA",
+      "kid": "test-key-1",
+      "alg": "RS256",
+      "n": "testmodulusvalue1testmodulusvalue1testmodulusvalue1",
+      "e": "AQAB"
+    },
+    {
+      "use": "sig",
+      "kty": "RSA",
+      "kid": "test-key-2",
+      "alg": "RS256",
+      "n": "testmodulusvalue2testmodulusvalue2testmodulusvalue2",
+      "e": "AQAB"
+    },
+    {
+      "use": "sig",
+      "kty": "RSA",
+      "kid": "test-key-3",
+      "alg": "RS256",
+      "n": "testmodulusvalue3testmodulusvalue3testmodulusvalue3",
+      "e": "AQAB"
+    }
+  ]
+}

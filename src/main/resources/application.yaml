@@ -1,0 +1,25 @@
+ktor:
+    application:
+        modules:
+            - dev.westelh.ApplicationKt.module
+    development: true
+    deployment:
+        host: localhost
+        port: 8080
+        watch:
+            - classes
+
+google:
+    oauth:
+        clientId: "$OAUTH_CLIENT_ID"
+        clientSecret: "$OAUTH_CLIENT_SECRET"
+        callback: "$OAUTH_CALLBACK"
+
+vault:
+    addr: "$VAULT_ADDR"
+    token: "$VAULT_TOKEN"
+    kv: "$VAULT_KV"
+
+    jwt:
+        issuer: "$VAULT_JWK_ISSUER"
+        audience: "$VAULT_JWK_AUDIENCE"
