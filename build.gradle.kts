@@ -1,4 +1,5 @@
 plugins {
+    id("org.sglahn.gradle-dockerfile-plugin") version "0.8"
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.ktor)
     alias(libs.plugins.kotlin.plugin.serialization)
