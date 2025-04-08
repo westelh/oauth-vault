@@ -44,6 +44,7 @@ jobs:
       with:
         name: build
         path: |
+          Dockerfile
           build
           !build/tmp
 
