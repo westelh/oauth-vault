@@ -23,7 +23,7 @@ jobs:
 
     - name: Extract chart name
       id: extract_chartname
-      uses: mikefarah/yq@4.45.1
+      uses: mikefarah/yq@v4.45.1
       with:
         cmd: yq '.name' ${{ env.HELM_DIR }}/Chart.yaml
 
