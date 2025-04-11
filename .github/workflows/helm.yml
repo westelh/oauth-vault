@@ -1,0 +1,40 @@
+name: Helm
+
+on:
+  push:
+    branches: [ "main" ]
+
+env:
+  HELM_DIR: helm/
+
+jobs:
+  push:
+
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+    - uses: actions/checkout@v4
+    - uses: azure/setup-helm@v4.2.0
+      with:
+        version: '3.16.2'
+
+    - name: Extract chart name
+      id: extract_chartname
+      uses: mikefarah/yq@4.45.1
+      with:
+        cmd: yq '.name' ${{ env.HELM_DIR }}/Chart.yaml
+
+    - name: Login to Registry
+      run: |
+        echo ${{ github.token }} | helm registry login ghcr.io/${{ github.repository_owner }} --username ${{ github.repository_owner }} --password-stdin
+
+    - name: Package Helm Chart
+      run: |
+        helm package ${{ env.HELM_DIR }}
+
+    - name: Push Helm Chart
+      run: |
+        helm push ${{ steps.extract_chartname.outputs.result }}-*.tgz oci://ghcr.io/${{ github.repository_owner }}/charts
