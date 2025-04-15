@@ -44,6 +44,10 @@ spec:
             - name: http
               containerPort: {{ .Values.service.port }}
               protocol: TCP
+          {{- if .Values.oauthVault.config.path }}
+          args:
+            - -config={{ .Values.oauthVault.config.path }}
+          {{- end }}
           {{- with .Values.livenessProbe }}
           livenessProbe:
             {{- toYaml . | nindent 12 }}
@@ -60,8 +64,27 @@ spec:
           volumeMounts:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-      {{- with .Values.volumes }}
+        {{- if .Values.vault.enabled }}
+        - name: vault-agent
+          image: "{{ .Values.vault.container.repository }}:{{ .Values.vault.container.tag }}"
+          imagePullPolicy: {{ .Values.vault.container.pullPolicy }}
+          command:
+            - /bin/sh
+            - -c
+            - |
+              vault agent -config=/etc/vault/config.hcl
+          volumeMounts:
+            - name: vault-config
+              mountPath: /etc/vault
+            {{- if .Values.volumeMounts }}
+            {{- toYaml .Values.volumeMounts | nindent 12 }}
+            {{- end }}
+        {{- end }}
       volumes:
+        - name: vault-config
+          configMap:
+            name: {{ include "oauth-vault.fullname" . }}-vault-config
+      {{- with .Values.volumes }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
       {{- with .Values.nodeSelector }}
