@@ -60,11 +60,15 @@ spec:
           resources:
             {{- toYaml . | nindent 12 }}
           {{- end }}
+          {{- if or .Values.vault.agent.enabled .Values.volumeMounts }}
           volumeMounts:
-            - name: vault-secrets
-              mountPath: /vault/secrets
+          {{- if .Values.vault.agent.enabled }}
+          - name: vault-agent
+            mountPath: /vault/agent
+          {{- end }}
           {{- with .Values.volumeMounts }}
-            {{- toYaml . | nindent 12 }}
+          {{- toYaml . | nindent 12 }}
+          {{- end }}
           {{- end }}
         {{- if .Values.vault.agent.enabled }}
         - name: vault-agent
@@ -76,22 +80,26 @@ spec:
             - |
               vault agent -config=/etc/vault/config.hcl
           volumeMounts:
-            - name: vault-secrets
-              mountPath: /vault/secrets
+            - name: vault-agent
+              mountPath: /vault/agent
             - name: vault-config
               mountPath: /etc/vault
             {{- if .Values.volumeMounts }}
             {{- toYaml .Values.volumeMounts | nindent 12 }}
             {{- end }}
         {{- end }}
+      {{- if or .Values.vault.agent.enabled .Values.volumes }}
       volumes:
-        - name: vault-secrets
+      {{- if .Values.vault.agent.enabled }}
+        - name: vault-agent
           emptyDir: {}
         - name: vault-config
           configMap:
-            name: {{ include "oauth-vault.fullname" . }}-vault-config
+            name: {{ include "oauth-vault.agentConfigmapName" . }}
+      {{- end }}
       {{- with .Values.volumes }}
-        {{- toYaml . | nindent 8 }}
+      {{- toYaml . | nindent 8 }}
+      {{- end }}
       {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
