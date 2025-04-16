@@ -63,11 +63,11 @@ spec:
           {{- if or .Values.vault.agent.enabled .Values.volumeMounts }}
           volumeMounts:
           {{- if .Values.vault.agent.enabled }}
-          - name: vault-agent
-            mountPath: /vault/agent
+            - name: vault-agent
+              mountPath: /vault/agent
           {{- end }}
           {{- with .Values.volumeMounts }}
-          {{- toYaml . | nindent 12 }}
+            {{- toYaml . | nindent 12 }}
           {{- end }}
           {{- end }}
         {{- if .Values.vault.agent.enabled }}
