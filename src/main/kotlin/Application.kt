@@ -18,7 +18,7 @@ fun Application.vaultConfig(): VaultConfig = object : VaultConfig {
         get() = environment.config.property("vault.addr").getString()
 
     override val token: String
-        get() = environment.config.property("vault.token").getString()
+        get() = environment.config.propertyOrNull("vault.token")?.getString() ?: ""
 }
 
 // TODO: Rename this to "createClient"
