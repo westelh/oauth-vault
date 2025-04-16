@@ -60,3 +60,10 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{/*
+Create the name of the ConfigMap for Vault
+*/}}
+{{- define "oauth-vault.agentConfigmapName" -}}
+{{ include "oauth-vault.fullname" . }}-agent-config
+{{- end }}

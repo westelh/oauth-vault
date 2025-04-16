@@ -1,11 +1,11 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "oauth-vault.fullname" . }}-vault-config
+  name: {{ include "oauth-vault.agentConfigmapName" . }}
   labels:
     {{- include "oauth-vault.labels" . | nindent 4 }}
 data:
   config.hcl: |
-    {{ .Values.vault.config | nindent 4 }}
+    {{ .Values.vault.agent.config | nindent 4 }}
   config.ctmpl: |
-    {{ index .Values "vault" "templates" "config.ctmpl" | nindent 4 }}
+    {{ index .Values "vault" "agent" "templates" "config.ctmpl" | nindent 4 }}

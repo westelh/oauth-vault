@@ -66,7 +66,7 @@ spec:
               mountPath: /vault/secrets
             {{- toYaml . | nindent 12 }}
           {{- end }}
-        {{- if .Values.vault.enabled }}
+        {{- if .Values.vault.agent.enabled }}
         - name: vault-agent
           image: "{{ .Values.vault.container.repository }}:{{ .Values.vault.container.tag }}"
           imagePullPolicy: {{ .Values.vault.container.pullPolicy }}

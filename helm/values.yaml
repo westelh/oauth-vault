@@ -117,55 +117,56 @@ oauthVault:
     path: "/vault/secrets/config.yaml"
 
 vault:
-  enabled: true
   container:
     repository: "hashicorp/vault"
     tag: "latest"
     pullPolicy: IfNotPresent
-  config: |
-    auto_auth {
-      method {
-        type = "kubernetes"
-        config = {
-          role = "vault-oauth"
+  agent:
+    enabled: true
+    config: |
+      auto_auth {
+        method {
+          type = "kubernetes"
+          config = {
+            role = "vault-oauth"
+          }
+        }
+        sink "file" {
+          config = {
+            path = "/home/vault/sink"
+          }
         }
       }
-      sink "file" {
-        config = {
-          path = "/home/vault/sink"
-        }
+
+      template {
+        source      = "/etc/vault/config.ctmpl"
+        destination = "/vault/secrets/config.yaml"
       }
-    }
 
-    template {
-      source      = "/etc/vault/config.ctmpl"
-      destination = "/vault/secrets/config.yaml"
-    }
-
-    vault {
-      address = "https://vault.example.com:8200"
-    }
-  templates:
-    config.ctmpl: |
-      {{- with secret "secret/data/my-app/config" -}}
-      ktor:
-        application:
-          modules: ["dev.westelh.ApplicationKt.module"]
-        deployment:
-          host: localhost
-          port: 8080
-      google:
-        oauth:
-          clientId: {{ .Data.data.client_id }}
-          clientSecret: {{ .Data.data.client_secret }}
-          callback: "https://ov.vault.example.com:8200/callback"
-      vault:
-        addr: "https://vault.example.com:8200"
-        {{ with secret "/auth/token/create" "" }}
-        token: {{ .Auth.ClientToken }}
-        {{ end }}
-        kv: kv
-        jwt:
-          issuer: "https://vault.example.com:8200/v1/identity/oidc"
-          audience: "xxxxxxxxxxxxx"
-      {{- end }}
+      vault {
+        address = "https://vault.example.com:8200"
+      }
+    templates:
+      config.ctmpl: |
+        {{- with secret "secret/data/my-app/config" -}}
+        ktor:
+          application:
+            modules: ["dev.westelh.ApplicationKt.module"]
+          deployment:
+            host: localhost
+            port: 8080
+        google:
+          oauth:
+            clientId: {{ .Data.data.client_id }}
+            clientSecret: {{ .Data.data.client_secret }}
+            callback: "https://ov.vault.example.com:8200/callback"
+        vault:
+          addr: "https://vault.example.com:8200"
+          {{ with secret "/auth/token/create" "" }}
+          token: {{ .Auth.ClientToken }}
+          {{ end }}
+          kv: kv
+          jwt:
+            issuer: "https://vault.example.com:8200/v1/identity/oidc"
+            audience: "xxxxxxxxxxxxx"
+        {{- end }}
