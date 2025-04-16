@@ -117,6 +117,7 @@ oauthVault:
     path: "/vault/secrets/config.yaml"
 
 vault:
+  enabled: true
   container:
     repository: "hashicorp/vault"
     tag: "latest"
@@ -129,7 +130,6 @@ vault:
       }
     address: "https://vault.example.com:8200"
   agent:
-    enabled: true
     template: |
         {{- with secret "secret/data/my-app/config" -}}
         ktor:
