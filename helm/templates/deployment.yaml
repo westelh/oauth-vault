@@ -63,8 +63,8 @@ spec:
           {{- if or .Values.vault.enabled .Values.volumeMounts }}
           volumeMounts:
           {{- if .Values.vault.enabled }}
-            - name: vault-agent
-              mountPath: /vault/agent
+            - name: vault-secret
+              mountPath: /vault/secret
           {{- end }}
           {{- with .Values.volumeMounts }}
             {{- toYaml . | nindent 12 }}
@@ -78,12 +78,12 @@ spec:
             - /bin/sh
             - -c
             - |
-              vault agent -config=/etc/vault/config.hcl
+              vault agent -config=/vault/agent/config.hcl
           volumeMounts:
             - name: vault-agent
               mountPath: /vault/agent
-            - name: vault-config
-              mountPath: /etc/vault
+            - name: vault-secret
+              mountPath: /vault/secret
             {{- if .Values.volumeMounts }}
             {{- toYaml .Values.volumeMounts | nindent 12 }}
             {{- end }}
@@ -91,9 +91,9 @@ spec:
       {{- if or .Values.vault.enabled .Values.volumes }}
       volumes:
       {{- if .Values.vault.enabled }}
-        - name: vault-agent
+        - name: vault-secret
           emptyDir: {}
-        - name: vault-config
+        - name: vault-agent
           configMap:
             name: {{ include "oauth-vault.agentConfigmapName" . }}
       {{- end }}

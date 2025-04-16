@@ -19,7 +19,7 @@ data:
     }
 
     template {
-      source      = "/etc/vault/config.ctmpl"
+      source      = "/vault/agent/config.ctmpl"
       destination = "/vault/secrets/config.yaml"
     }
 
