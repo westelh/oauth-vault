@@ -38,7 +38,10 @@ class Vault(private val config: VaultConfig, engine: HttpClientEngine = Apache.c
     class VaultError(cause: VaultErrorResponse?) : Throwable(cause?.toString().orEmpty())
 
     private val configure: HttpRequestBuilder.() -> Unit = {
-        headers { bearerAuth(config.token) }
+        if (config.token.isBlank()) {
+            headers { bearerAuth(config.token) }
+        }
+
         contentType(ContentType.Application.Json)
     }
 

@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "dev.westelh"
-version = "0.0.3"
+version = "0.0.4"
 
 application {
     mainClass.set("dev.westelh.ApplicationKt")
