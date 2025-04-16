@@ -121,39 +121,22 @@ vault:
     repository: "hashicorp/vault"
     tag: "latest"
     pullPolicy: IfNotPresent
+  config:
+    method: |
+      type = "kubernetes"
+      config = {
+        role = "vault-oauth"
+      }
+    address: "https://vault.example.com:8200"
   agent:
     enabled: true
-    config: |
-      auto_auth {
-        method {
-          type = "kubernetes"
-          config = {
-            role = "vault-oauth"
-          }
-        }
-        sink "file" {
-          config = {
-            path = "/home/vault/sink"
-          }
-        }
-      }
-
-      template {
-        source      = "/etc/vault/config.ctmpl"
-        destination = "/vault/secrets/config.yaml"
-      }
-
-      vault {
-        address = "https://vault.example.com:8200"
-      }
-    templates:
-      config.ctmpl: |
+    template: |
         {{- with secret "secret/data/my-app/config" -}}
         ktor:
           application:
             modules: ["dev.westelh.ApplicationKt.module"]
           deployment:
-            host: localhost
+            host: 0.0.0.0
             port: 8080
         google:
           oauth:

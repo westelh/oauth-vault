@@ -7,7 +7,25 @@ metadata:
     {{- include "oauth-vault.labels" . | nindent 4 }}
 data:
   config.hcl: |
-    {{ .Values.vault.agent.config | nindent 4 }}
+    auto_auth {
+      method {
+      {{- .Values.vault.config.method | nindent 8 -}}
+      }
+      sink "file" {
+        config = {
+          path = "/home/vault/sink"
+        }
+      }
+    }
+
+    template {
+      source      = "/etc/vault/config.ctmpl"
+      destination = "/vault/secrets/config.yaml"
+    }
+
+    vault {
+      address = {{ .Values.vault.config.address | quote }}
+    }
   config.ctmpl: |
-    {{ index .Values "vault" "agent" "templates" "config.ctmpl" | nindent 4 }}
+    {{- .Values.vault.agent.template | nindent 4 }}
 {{- end }}
