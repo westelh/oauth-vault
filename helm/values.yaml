@@ -103,12 +103,8 @@ autoscaling:
   targetCPUUtilizationPercentage: 80
   # targetMemoryUtilizationPercentage: 80
 
-volumeMounts:
-- name: vault-secrets
-  mountPath: /vault/secrets
-volumes:
-- name: vault-secrets
-  emptyDir: {}
+volumeMounts: []
+volumes: []
 
 nodeSelector: {}
 
