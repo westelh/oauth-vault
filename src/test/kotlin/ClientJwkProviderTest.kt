@@ -2,20 +2,20 @@ package dev.westelh
 
 import com.auth0.jwk.SigningKeyNotFoundException
 import dev.westelh.vault.Vault
-import dev.westelh.vault.VaultConfig
+import dev.westelh.vault.Config
 import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.matchers.shouldBe
 import io.ktor.client.engine.mock.*
 import kotlin.test.Test
 
 class ClientJwkProviderTest {
-    private val vaultConfig: VaultConfig = object : VaultConfig {
+    private val config: Config = object : Config {
         override val address: String = "https://example.com:8200"
         override val token: String = ""
     }
 
     private fun createVaultJwkProviderWithTestConfig(engine: MockEngine): JwkProvider {
-        return JwkProvider(Vault(vaultConfig, engine))
+        return JwkProvider(Vault(config, engine))
     }
 
     @Test

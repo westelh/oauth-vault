@@ -1,8 +1,7 @@
 package dev.westelh
 
 import dev.westelh.vault.Vault
-import dev.westelh.vault.VaultConfig
-import dev.westelh.vault.api.kv.KvV2GetSecretResponse
+import dev.westelh.vault.Config
 import dev.westelh.vault.api.kv.KvV2WriteSecretResponse
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -139,7 +138,7 @@ fun Application.createVaultClient(): Client {
     return Client(client, mount)
 }
 
-fun ApplicationEnvironment.vaultConfig(): VaultConfig = object : VaultConfig {
+fun ApplicationEnvironment.vaultConfig(): Config = object : Config {
     override val address: String
         get() = config.property("vault.addr").getString()
 

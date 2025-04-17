@@ -17,7 +17,7 @@ class ClientClientTest {
     @Test
     fun `Empty vault address should throw exception`() {
         shouldThrow<Throwable> {
-            Vault(object : VaultConfig {
+            Vault(object : Config {
                 override val address: String = ""
                 override val token: String = "xxx"
             })
@@ -32,7 +32,7 @@ class ClientClientTest {
                 status = HttpStatusCode.OK
             )
         }
-        val client = Vault(object : VaultConfig {
+        val client = Vault(object : Config {
             override val address: String = "http://localhost:8200"
             override val token: String = "xxx"
         }, engine)
@@ -58,7 +58,7 @@ class ClientClientTest {
                 headers = headersOf("Content-Type", "application/json")
             )
         }
-        val client = Vault(object : VaultConfig {
+        val client = Vault(object : Config {
             override val address: String = "http://localhost:8200"
             override val token: String = "xxx"
         }, engine)

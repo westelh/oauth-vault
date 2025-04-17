@@ -1,7 +1,7 @@
 package dev.westelh
 
 import dev.westelh.vault.Vault
-import dev.westelh.vault.VaultConfig
+import dev.westelh.vault.Config
 import dev.westelh.vault.api.VaultErrorResponse
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
@@ -11,13 +11,13 @@ import kotlinx.coroutines.runBlocking
 import kotlin.test.Test
 
 class ClientTest {
-    private val vaultConfig: VaultConfig = object : VaultConfig {
+    private val config: Config = object : Config {
         override val address: String = "https://example.com:8200"
         override val token: String = ""
     }
 
     private fun createTestClient(engine: MockEngine): Client {
-        val vault = Vault(vaultConfig, engine)
+        val vault = Vault(config, engine)
         return Client(vault, "kv")
     }
 

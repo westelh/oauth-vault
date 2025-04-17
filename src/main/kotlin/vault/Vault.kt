@@ -19,7 +19,7 @@ import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 
-class Vault(private val config: VaultConfig, engine: HttpClientEngine = Apache.create {  }) {
+class Vault(private val config: Config, engine: HttpClientEngine = Apache.create {  }) {
     val baseUrl: V1Path = Address(config.address).v1()
 
     @OptIn(ExperimentalSerializationApi::class)
@@ -95,9 +95,4 @@ class Vault(private val config: VaultConfig, engine: HttpClientEngine = Apache.c
         if (response.status == HttpStatusCode.NoContent) response.body<Unit>()
         else throw VaultError(response.body())
     }
-}
-
-interface VaultConfig {
-    val address: String
-    val token: String
 }
