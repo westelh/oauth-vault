@@ -28,4 +28,34 @@ data:
     }
   config.ctmpl: |
     {{- .Values.vault.agent.template | nindent 4 }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "oauth-vault.proxyConfigmapName" . }}
+  labels:
+    {{- include "oauth-vault.labels" . | nindent 4 }}
+data:
+  config.hcl: |
+    auto_auth {
+      method {
+      {{- .Values.vault.config.method | nindent 8 -}}
+      }
+      sink "file" {
+        config = {
+          path = "/home/vault/sink"
+        }
+      }
+    }
+    vault {
+      address = {{ .Values.vault.config.address | quote }}
+    }
+    api_proxy {
+      use_auto_auth_token = true
+    }
+    listener "tcp" {
+      address = "127.0.0.1:8100"
+      tls_disable = true
+    }
 {{- end }}
+

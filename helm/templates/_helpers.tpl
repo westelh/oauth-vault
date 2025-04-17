@@ -62,8 +62,15 @@ Create the name of the service account to use
 {{- end }}
 
 {{/*
-Create the name of the ConfigMap for Vault
+Create the name of the ConfigMap for Vault Agent
 */}}
 {{- define "oauth-vault.agentConfigmapName" -}}
 {{ include "oauth-vault.fullname" . }}-agent-config
+{{- end }}
+
+{{/*
+Create the name of the ConfigMap for Vault Proxy
+*/}}
+{{- define "oauth-vault.proxyConfigmapName" -}}
+{{ include "oauth-vault.fullname" . }}-proxy-config
 {{- end }}

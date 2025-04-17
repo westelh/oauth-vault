@@ -64,7 +64,7 @@ spec:
           volumeMounts:
           {{- if .Values.vault.enabled }}
             - name: vault-secret
-              mountPath: /vault/secret
+              mountPath: /vault/secrets
           {{- end }}
           {{- with .Values.volumeMounts }}
             {{- toYaml . | nindent 12 }}
@@ -83,7 +83,21 @@ spec:
             - name: vault-agent
               mountPath: /vault/agent
             - name: vault-secret
-              mountPath: /vault/secret
+              mountPath: /vault/secrets
+            {{- if .Values.volumeMounts }}
+            {{- toYaml .Values.volumeMounts | nindent 12 }}
+            {{- end }}
+        - name: vault-proxy
+          image: "{{ .Values.vault.container.repository }}:{{ .Values.vault.container.tag }}"
+          imagePullPolicy: {{ .Values.vault.container.pullPolicy }}
+          command:
+            - /bin/sh
+            - -c
+            - |
+              vault proxy -config=/vault/proxy/config.hcl
+          volumeMounts:
+            - name: vault-proxy
+              mountPath: /vault/proxy
             {{- if .Values.volumeMounts }}
             {{- toYaml .Values.volumeMounts | nindent 12 }}
             {{- end }}
@@ -96,6 +110,9 @@ spec:
         - name: vault-agent
           configMap:
             name: {{ include "oauth-vault.agentConfigmapName" . }}
+        - name: vault-proxy
+          configMap:
+            name: {{ include "oauth-vault.proxyConfigmapName" . }}
       {{- end }}
       {{- with .Values.volumes }}
       {{- toYaml . | nindent 8 }}
