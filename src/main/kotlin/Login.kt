@@ -1,62 +1,55 @@
 package dev.westelh
 
+import dev.westelh.vault.Vault
 import io.ktor.client.*
 import io.ktor.client.engine.apache.*
 import io.ktor.client.plugins.logging.*
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
+import io.ktor.server.auth.jwt.*
 import io.ktor.server.response.*
-import io.ktor.server.routing.*
 
 fun Application.configureSecurity() {
-    val google = OAuthServerSettings.OAuth2ServerSettings(
-        name = "google",
-        authorizeUrl = "https://accounts.google.com/o/oauth2/auth",
-        accessTokenUrl = "https://accounts.google.com/o/oauth2/token",
-        requestMethod = HttpMethod.Post,
-        clientId = environment.config.property("google.oauth.clientId").getString(),
-        clientSecret = environment.config.property("google.oauth.clientSecret").getString(),
-        defaultScopes = listOf(
-            "https://www.googleapis.com/auth/userinfo.profile",
-            "https://www.googleapis.com/auth/userinfo.email",
-            "https://mail.google.com/",
-        ),
-        extraAuthParameters = listOf("access_type" to "offline")
-    )
+    val env = this.environment
+    install(Authentication) {
+        jwt("auth-jwt") {
+            with(env.config.config("vault.jwt")) {
+                verifier(VaultJwkProvider(Vault(env.vaultConfig()))) {
+                    withAudience(property("audience").getString())
+                    withIssuer(property("issuer").getString())
+                    withClaimPresence("google_id")
+                }
+                validate { credential ->
+                    JWTPrincipal(credential.payload)
+                }
+                challenge { _, _ ->
+                    call.respond(HttpStatusCode.Unauthorized, "Token is not valid or has expired")
+                }
+            }
+        }
 
-    val environment = environment
-
-    authentication {
+        val google = OAuthServerSettings.OAuth2ServerSettings(
+            name = "google",
+            authorizeUrl = "https://accounts.google.com/o/oauth2/auth",
+            accessTokenUrl = "https://accounts.google.com/o/oauth2/token",
+            requestMethod = HttpMethod.Post,
+            clientId = this@configureSecurity.environment.config.property("google.oauth.clientId").getString(),
+            clientSecret = this@configureSecurity.environment.config.property("google.oauth.clientSecret").getString(),
+            defaultScopes = listOf(
+                "https://www.googleapis.com/auth/userinfo.profile",
+                "https://www.googleapis.com/auth/userinfo.email",
+                "https://mail.google.com/",
+            ),
+            extraAuthParameters = listOf("access_type" to "offline")
+        )
         oauth("auth-oauth-google") {
-            urlProvider = { environment.config.property("google.oauth.callback").getString() }
+            urlProvider = { this@configureSecurity.environment.config.property("google.oauth.callback").getString() }
             providerLookup = { google }
             client = HttpClient(Apache) {
                 install(Logging) {
                     level = LogLevel.INFO
                 }
-            }
-        }
-    }
-
-    routing {
-        authenticate("auth-oauth-google") {
-            get("/login") {
-                call.respondRedirect("/callback")
-            }
-
-            get("/callback") {
-                val principal: OAuthAccessTokenResponse.OAuth2 = call.authentication.principal()!!
-
-                // First login
-                if (principal.refreshToken != null) {
-                    val user = getUser(principal.accessToken)!!
-                    val vault = createVaultClient()
-                    vault.writeToken(user.id, OAuthCodes(principal))
-                    vault.writeTokenMetadata(user.id, user)
-                }
-
-                call.respondRedirect("/")
             }
         }
     }
