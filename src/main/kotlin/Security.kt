@@ -14,7 +14,7 @@ fun Application.configureSecurity() {
     install(Authentication) {
         jwt("auth-jwt") {
             with(env.config.config("vault.jwt")) {
-                verifier(VaultJwkProvider(Vault(env.vaultConfig()))) {
+                verifier(JwkProvider(Vault(env.vaultConfig()))) {
                     withAudience(property("audience").getString())
                     withIssuer(property("issuer").getString())
                     withClaimPresence("google_id")

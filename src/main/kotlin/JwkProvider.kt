@@ -11,7 +11,7 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.encodeToJsonElement
 
-class VaultJwkProvider(val client: Vault): JwkProvider {
+class JwkProvider(val client: Vault): JwkProvider {
     companion object {
         fun decodeJwk(json: JsonElement): Jwk = Jwk.fromValues(Json.decodeFromJsonElement<Map<String, String>>(json))
     }

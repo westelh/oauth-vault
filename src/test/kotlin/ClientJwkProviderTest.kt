@@ -14,8 +14,8 @@ class ClientJwkProviderTest {
         override val token: String = ""
     }
 
-    private fun createVaultJwkProviderWithTestConfig(engine: MockEngine): VaultJwkProvider {
-        return VaultJwkProvider(Vault(vaultConfig, engine))
+    private fun createVaultJwkProviderWithTestConfig(engine: MockEngine): JwkProvider {
+        return JwkProvider(Vault(vaultConfig, engine))
     }
 
     @Test
