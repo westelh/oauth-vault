@@ -4,6 +4,8 @@ import dev.westelh.vault.*
 import dev.westelh.vault.api.kv.KvV2WriteMetadataRequest
 import dev.westelh.vault.api.kv.KvV2WriteSecretRequest
 import dev.westelh.vault.api.kv.KvV2WriteSecretResponse
+import io.ktor.server.application.*
+import io.ktor.server.config.*
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.encodeToJsonElement
@@ -41,4 +43,16 @@ class Client(private val vault: Vault, private val mount: String) {
     suspend fun deleteToken(boundUserId: String): Result<Unit> {
         return vault.deleteKvV2Secret(mount, uniquePath(boundUserId))
     }
+}
+
+class VaultApplicationConfig(config: ApplicationConfig): Config {
+    override val address: String = config.property("vault.addr").getString()
+    override val token: String = config.propertyOrNull("vault.token")?.getString().orEmpty()
+    val mount = config.property("vault.kv").getString()
+}
+
+fun createVaultClient(config: ApplicationConfig): Client {
+    val vac = VaultApplicationConfig(config)
+    val client = Vault(vac)
+    return Client(client, vac.mount)
 }

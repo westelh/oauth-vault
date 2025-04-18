@@ -1,6 +1,5 @@
 package dev.westelh
 
-import dev.westelh.vault.Vault
 import dev.westelh.vault.Config
 import dev.westelh.vault.api.kv.KvV2WriteSecretResponse
 import io.ktor.http.*
@@ -29,7 +28,7 @@ fun Application.configureRouting() {
                 // First login
                 if (principal.refreshToken != null) {
                     val user = getUser(principal.accessToken)!!
-                    val vault = createVaultClient()
+                    val vault = createVaultClient(environment.config)
                     vault.writeToken(user.id, OAuthCodes(principal))
                     vault.writeTokenMetadata(user.id, user)
                 }
@@ -47,7 +46,7 @@ fun Application.configureRouting() {
 
             get("/user/metadata") {
                 ensureJWT { googleID ->
-                    val client = createVaultClient()
+                    val client = createVaultClient(environment.config)
 
                     client.readTokenMetadata(googleID).onSuccess {
                         call.respond(it)
@@ -59,7 +58,7 @@ fun Application.configureRouting() {
 
             get("/token") {
                 ensureJWT { googleID ->
-                    val client = createVaultClient()
+                    val client = createVaultClient(environment.config)
                     client.readToken(googleID).handleFailureOr(call) { codes ->
                         call.respond(Json.encodeToString(codes))
                     }
@@ -68,7 +67,7 @@ fun Application.configureRouting() {
 
             post("/token/refresh") {
                 ensureJWT { googleID ->
-                    val client = createVaultClient()
+                    val client = createVaultClient(environment.config)
 
                     // アカウントIDに対応するトークンを取得
                     client.readToken(googleID).handleFailureOr(call) { token ->
@@ -98,7 +97,7 @@ fun Application.configureRouting() {
 
             post("/token/delete") {
                 ensureJWT { googleID ->
-                    val client = createVaultClient()
+                    val client = createVaultClient(environment.config)
 
                     client.readToken(googleID).handleFailureOr(call) { // user has codes on kv
                         client.deleteToken(googleID).onSuccess {
@@ -130,20 +129,6 @@ suspend fun RoutingContext.ensureJWT(block: suspend RoutingContext.(googleID: St
             }
         }
     }
-}
-
-fun Application.createVaultClient(): Client {
-    val client = Vault(environment.vaultConfig())
-    val mount = environment.config.property("vault.kv").getString()
-    return Client(client, mount)
-}
-
-fun ApplicationEnvironment.vaultConfig(): Config = object : Config {
-    override val address: String
-        get() = config.property("vault.addr").getString()
-
-    override val token: String
-        get() = config.propertyOrNull("vault.token")?.getString() ?: ""
 }
 
 suspend fun Result<OAuthCodes>.handleFailureOr(call: ApplicationCall, block: suspend (codes: OAuthCodes) -> Unit) {
