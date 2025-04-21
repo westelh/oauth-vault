@@ -5,13 +5,10 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonIgnoreUnknownKeys
 
-
-// Path: /identity/oidc/.well-known/keys
-
-// IdentityGetJwk does not have a request body
+// https://developer.hashicorp.com/vault/api-docs/secret/identity/tokens#read-identity-token-issuer-s-public-jwks
 
 @Serializable
-data class IdentityGetJwkResponseData(
+data class GetIdentityTokenIssuerKeysResponse(
     val keys: List<JwkKey>,
 ) {
     @OptIn(ExperimentalSerializationApi::class)

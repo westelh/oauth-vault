@@ -18,7 +18,7 @@ class JwkProvider(val client: Vault): JwkProvider {
 
     override fun get(keyId: String): Jwk {
         return runBlocking {
-            client.readOidcWellKnownKeys().mapCatching {
+            client.getIdentityTokenIssuerKeys().mapCatching {
                 it.keys.find { it.keyId == keyId }.let { found ->
                     decodeJwk(Json.encodeToJsonElement(found))
                 }
