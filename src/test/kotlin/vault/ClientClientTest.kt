@@ -64,7 +64,7 @@ class ClientClientTest {
         }, engine)
 
         val res = runBlocking {
-            client.readAndGetResult<TestSchema>("http://localhost:8200/v1/sys/health") {
+            client.getOrVaultError<TestSchema>("http://localhost:8200/v1/sys/health") {
                 bearerAuth("xxx")
             }
         }

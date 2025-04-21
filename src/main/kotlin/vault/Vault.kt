@@ -34,7 +34,6 @@ class Vault(private val config: Config, engine: HttpClientEngine = Apache.create
         }
     }
 
-
     class VaultError(cause: VaultErrorResponse?) : Throwable(cause?.toString().orEmpty())
 
     private val configure: HttpRequestBuilder.() -> Unit = {
@@ -63,36 +62,33 @@ class Vault(private val config: Config, engine: HttpClientEngine = Apache.create
             block()
         }
 
-    suspend inline fun <reified R> readAndGetResult(
+    suspend inline fun <reified R> getOrVaultError(
         url: String,
         noinline block: HttpRequestBuilder.() -> Unit = {}
     ): Result<R> = runCatching {
-        get(url, block)
-    }.mapCatching { response ->
-        if (response.status == HttpStatusCode.OK) response.body<R>()
-        else {
-            if (response.bodyAsBytes().isEmpty()) throw VaultError(null)
-            else throw VaultError(response.body())
-        }
+        handleVaultResponse(get(url, block), HttpStatusCode.OK) { it.body() }
     }
 
-    suspend inline fun <reified R> writeAndGetResult(
+    suspend inline fun <reified R> postOrVaultError(
         url: String,
         noinline block: HttpRequestBuilder.() -> Unit = {}
     ): Result<R> = runCatching {
-        post(url, block)
-    }.mapCatching { response ->
-        if (response.status == HttpStatusCode.OK) response.body<R>()
-        else throw VaultError(response.body())
+        handleVaultResponse(post(url, block), HttpStatusCode.OK) { it.body() }
     }
 
-    suspend inline fun deleteAndGetResult(
+    suspend inline fun deleteOrVaultError(
         url: String,
         noinline block: HttpRequestBuilder.() -> Unit = {}
     ): Result<Unit> = runCatching {
-        delete(url, block)
-    }.mapCatching { response ->
-        if (response.status == HttpStatusCode.NoContent) response.body<Unit>()
-        else throw VaultError(response.body())
+        handleVaultResponse(delete(url, block), HttpStatusCode.NoContent) { it.body() }
+    }
+
+    suspend inline fun <R> handleVaultResponse(response: HttpResponse, successStatus: HttpStatusCode, transform: (HttpResponse) -> R): R {
+        return if (response.status == successStatus) {
+            transform(response)
+        } else {
+            if (response.bodyAsBytes().isEmpty()) throw VaultError(null)
+            else throw VaultError(response.body())
+        }
     }
 }
