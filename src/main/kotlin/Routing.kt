@@ -1,6 +1,5 @@
 package dev.westelh
 
-import dev.westelh.vault.Config
 import dev.westelh.vault.api.kv.KvV2WriteSecretResponse
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -15,6 +14,17 @@ fun Application.configureRouting() {
     routing {
         get("/") {
             call.respond("Vault OAuth Client")
+        }
+
+        authenticate("auth-oauth-vault") {
+            get("/oidc/user/login") {
+                call.respondRedirect("/oidc/user/callback")
+            }
+
+            get("/oidc/user/callback") {
+                val principal: OAuthAccessTokenResponse.OAuth2 = call.authentication.principal()!!
+                call.respondRedirect("/")
+            }
         }
 
         authenticate("auth-oauth-google") {

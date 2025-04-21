@@ -25,7 +25,7 @@ class Vault(private val config: Config, engine: HttpClientEngine = Apache.create
     @OptIn(ExperimentalSerializationApi::class)
     private val client = HttpClient(engine) {
         install(Logging) {
-            level = LogLevel.INFO
+            level = LogLevel.BODY
         }
         install(ContentNegotiation) {
             json(Json {
@@ -38,7 +38,7 @@ class Vault(private val config: Config, engine: HttpClientEngine = Apache.create
     class VaultError(cause: VaultErrorResponse?) : Throwable(cause?.toString().orEmpty())
 
     private val configure: HttpRequestBuilder.() -> Unit = {
-        if (config.token.isBlank()) {
+        if (config.token.isNotBlank()) {
             headers { bearerAuth(config.token) }
         }
 

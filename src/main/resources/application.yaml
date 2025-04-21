@@ -20,6 +20,14 @@ vault:
     token: "$VAULT_TOKEN"
     kv: "$VAULT_KV"
 
+    oauth:
+        client: oauth-vault
+        callback: "http://localhost:8080/oidc/user/callback"
+        authorizeUrl: "http://vault.example.com/ui/vault/identity/oidc/provider/default/authorize"
+        accessTokenUrl: "http://vault.example.com/v1/identity/oidc/provider/default/token"
+        scopes:
+            - openid
+            - meta
     jwt:
         issuer: "$VAULT_JWK_ISSUER"
         audience: "$VAULT_JWK_AUDIENCE"
