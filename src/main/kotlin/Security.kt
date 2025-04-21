@@ -1,8 +1,7 @@
 package dev.westelh
 
 import dev.westelh.vault.Vault
-import dev.westelh.vault.IdentityPathBuilder
-import dev.westelh.vault.api.identity.response.GetOidcClientResponse
+import dev.westelh.vault.identity
 import io.ktor.client.*
 import io.ktor.client.engine.apache.*
 import io.ktor.client.plugins.contentnegotiation.*
@@ -40,15 +39,12 @@ fun Application.configureSecurity() {
         }
 
         oauth("auth-oauth-vault") {
-            val origin = env.config.property("vault.addr").getString()
-
             with(env.config.config("vault.oauth")) {
-                val vault = Vault(VaultApplicationConfig(env.config))
+                val identity = Vault(VaultApplicationConfig(env.config)).identity()
 
                 val clientName = property("client").getString()
                 val oidc = runBlocking {
-                    val url = IdentityPathBuilder(origin).buildOidcClientPath(clientName)
-                    vault.getOrVaultError<GetOidcClientResponse>(url)
+                    identity.getOidcClient(clientName)
                 }.getOrThrow()
 
                 client = http

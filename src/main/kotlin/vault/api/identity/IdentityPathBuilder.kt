@@ -1,4 +1,4 @@
-package dev.westelh.vault
+package dev.westelh.vault.api.identity
 
 class IdentityPathBuilder(origin: String) {
 

@@ -1,6 +1,5 @@
 package dev.westelh
 
-import dev.westelh.vault.api.kv.v2.request.KvV2WriteSecretResponse
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -150,7 +149,7 @@ suspend fun Result<OAuthCodes>.handleFailureOr(call: ApplicationCall, block: sus
     }
 }
 
-suspend fun Result<KvV2WriteSecretResponse>.handleFailureOr(call: ApplicationCall, block: suspend () -> Unit) {
+suspend fun Result<Unit>.handleFailureOr(call: ApplicationCall, block: suspend () -> Unit) {
     onSuccess {
         block.invoke()
     }

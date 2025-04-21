@@ -4,7 +4,7 @@ import com.auth0.jwk.Jwk
 import com.auth0.jwk.JwkProvider
 import com.auth0.jwk.SigningKeyNotFoundException
 import dev.westelh.vault.Vault
-import dev.westelh.vault.*
+import dev.westelh.vault.identity
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
@@ -18,7 +18,7 @@ class JwkProvider(val client: Vault): JwkProvider {
 
     override fun get(keyId: String): Jwk {
         return runBlocking {
-            client.getIdentityTokenIssuerKeys().mapCatching {
+            client.identity().getIdentityTokenIssuerKeys().mapCatching {
                 it.keys.find { it.keyId == keyId }.let { found ->
                     decodeJwk(Json.encodeToJsonElement(found))
                 }

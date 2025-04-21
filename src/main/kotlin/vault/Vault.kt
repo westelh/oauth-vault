@@ -1,5 +1,8 @@
 package dev.westelh.vault
 
+import dev.westelh.vault.api.ErrorResponse
+import dev.westelh.vault.api.identity.Identity
+import dev.westelh.vault.api.kv.v2.Kv
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
@@ -13,7 +16,7 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 
 class Vault(private val config: Config, engine: HttpClientEngine = Apache.create {  }) {
-    val baseUrl: V1Path = Address(config.address).v1()
+    private val v1 = "${config.address}/v1"
 
     @OptIn(ExperimentalSerializationApi::class)
     private val client = HttpClient(engine) {
@@ -24,8 +27,15 @@ class Vault(private val config: Config, engine: HttpClientEngine = Apache.create
         }
     }
 
-    class VaultError(statusCode: HttpStatusCode, message: String)
-        : Throwable("Vault error: $statusCode - $message")
+    class VaultError(response: HttpResponse, body: ErrorResponse): Throwable(toString(response, body)) {
+        companion object {
+            private fun toString(response: HttpResponse, body: ErrorResponse): String {
+                val statusCode = response.status
+                val at = response.request.url
+                return "$statusCode at ${at} - $body"
+            }
+        }
+    }
 
     private val configure: HttpRequestBuilder.() -> Unit = {
         // トークンが空の時は、ベアラー認証を行わない
@@ -33,58 +43,53 @@ class Vault(private val config: Config, engine: HttpClientEngine = Apache.create
         contentType(ContentType.Application.Json)
     }
 
-    suspend fun get(urlString: String, block: HttpRequestBuilder.() -> Unit = {}): HttpResponse =
-        client.get(urlString) {
+    suspend fun get(path: String, block: HttpRequestBuilder.() -> Unit = {}): HttpResponse =
+        client.get("$v1/$path") {
             configure()
             block()
         }
 
-    suspend fun post(urlString: String, block: HttpRequestBuilder.() -> Unit = {}): HttpResponse =
-        client.post(urlString) {
+    suspend fun post(path: String, block: HttpRequestBuilder.() -> Unit = {}): HttpResponse =
+        client.post("$v1/$path") {
             configure()
             block()
         }
 
-    suspend fun delete(urlString: String, block: HttpRequestBuilder.() -> Unit = {}): HttpResponse =
-        client.delete(urlString) {
+    suspend fun delete(path: String, block: HttpRequestBuilder.() -> Unit = {}): HttpResponse =
+        client.delete("$v1/$path") {
             configure()
             block()
         }
 
     suspend inline fun <reified R> getOrVaultError(
-        url: String,
+        path: String,
         noinline block: HttpRequestBuilder.() -> Unit = {}
     ): Result<R> = runCatching {
-        handleVaultResponse(get(url, block), HttpStatusCode.OK) { it.body() }
+        handleVaultResponse(get(path, block), HttpStatusCode.OK) { it.body() }
     }
 
     suspend inline fun <reified R> postOrVaultError(
-        url: String,
+        path: String,
         noinline block: HttpRequestBuilder.() -> Unit = {}
     ): Result<R> = runCatching {
-        handleVaultResponse(post(url, block), HttpStatusCode.OK) { it.body() }
+        handleVaultResponse(post(path, block), HttpStatusCode.OK) { it.body() }
     }
 
     suspend fun deleteOrVaultError(
-        url: String,
+        path: String,
         block: HttpRequestBuilder.() -> Unit = {}
     ): Result<Unit> = runCatching {
-        handleVaultResponse(delete(url, block), HttpStatusCode.NoContent) { it.body() }
+        handleVaultResponse(delete(path, block), HttpStatusCode.NoContent) { it.body() }
     }
 
     suspend fun <R> handleVaultResponse(response: HttpResponse, successStatus: HttpStatusCode, transform: suspend (HttpResponse) -> R): R {
         return if (response.status == successStatus) {
             transform(response)
         } else {
-            if (response.bodyAsBytes().isEmpty()) {
-                when (response.status) {
-                    HttpStatusCode.Unauthorized -> throw VaultError(response.status, "Unauthorized")
-                    HttpStatusCode.Forbidden -> throw VaultError(response.status, "Forbidden")
-                    HttpStatusCode.NotFound -> throw VaultError(response.status, "Not Found")
-                    else -> throw VaultError(response.status, "No description")
-                }
-            }
-            else throw VaultError(response.body(), response.body<List<String>>().joinToString())
+            throw VaultError(response, response.body())
         }
     }
 }
+
+fun Vault.kv(mount: String): Kv = Kv(this, mount)
+fun Vault.identity(): Identity = Identity(this)

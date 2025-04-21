@@ -1,46 +1,44 @@
 package dev.westelh
 
-import dev.westelh.vault.*
+import dev.westelh.vault.Config
+import dev.westelh.vault.Vault
 import dev.westelh.vault.api.kv.v2.request.PutSecretMetadataRequest
 import dev.westelh.vault.api.kv.v2.request.PutSecretRequest
-import dev.westelh.vault.api.kv.v2.request.KvV2WriteSecretResponse
+import dev.westelh.vault.kv
 import io.ktor.server.config.*
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.encodeToJsonElement
 
-class Client(private val vault: Vault, private val mount: String) {
+class Client(vault: Vault, mount: String) {
     private fun uniquePath(userId: String): String = "applications/oauth/$userId"
+    private val kv = vault.kv(mount)
 
-    suspend fun readToken(boundUserId: String): Result<OAuthCodes> {
-        return vault.readKvV2Secret(mount, uniquePath(boundUserId)).mapCatching { response ->
+    suspend fun readToken(boundUserId: String, version: Int? = null): Result<OAuthCodes> {
+        return kv.readSecretVersion(uniquePath(boundUserId), version).mapCatching { response ->
             Json.decodeFromJsonElement(response.data.data)
         }
     }
 
-    suspend fun readToken(boundUserId: String, version: Int): Result<OAuthCodes> {
-        return vault.readKvV2Secret(mount, uniquePath(boundUserId)).mapCatching { response ->
-            Json.decodeFromJsonElement(response.data.data)
-        }
-    }
-
-    suspend fun writeToken(boundUserId: String, token: OAuthCodes): Result<KvV2WriteSecretResponse> {
+    suspend fun writeToken(boundUserId: String, token: OAuthCodes): Result<Unit> {
         val payload = PutSecretRequest(Json.encodeToJsonElement(token))
-        return vault.writeKvV2Secret(mount, uniquePath(boundUserId), payload)
+        return kv.writeSecret(uniquePath(boundUserId), payload).mapCatching {
+            // Result<PutSecretResponse>はユーザーには必要ないのでUnitに変換
+        }
     }
 
     suspend fun readTokenMetadata(boundUserId: String): Result<UserProfile> {
-        return vault.readKvV2Metadata(mount, uniquePath(boundUserId)).mapCatching { response ->
+        return kv.readSecretMetadata(uniquePath(boundUserId)).mapCatching { response ->
             Json.decodeFromJsonElement(response.data.customMetadata)
         }
     }
 
     suspend fun writeTokenMetadata(boundUserId: String, metadata: UserProfile): Result<Unit> {
-        return vault.writeKvV2Metadata(mount, uniquePath(boundUserId), PutSecretMetadataRequest(metadata))
+        return kv.writeSecretMetadata(uniquePath(boundUserId), PutSecretMetadataRequest(metadata))
     }
 
     suspend fun deleteToken(boundUserId: String): Result<Unit> {
-        return vault.deleteKvV2Secret(mount, uniquePath(boundUserId))
+        return kv.deleteLatestVersionOfSecret(uniquePath(boundUserId))
     }
 }
 
