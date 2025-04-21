@@ -1,20 +1,13 @@
 package dev.westelh.vault
 
-import dev.westelh.vault.api.VaultErrorResponse
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
 import io.ktor.client.engine.apache.*
 import io.ktor.client.plugins.contentnegotiation.*
-import io.ktor.client.plugins.logging.*
-import io.ktor.client.request.HttpRequestBuilder
-import io.ktor.client.request.bearerAuth
-import io.ktor.client.request.delete
-import io.ktor.client.request.get
-import io.ktor.client.request.post
+import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.http.headers
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
@@ -24,9 +17,6 @@ class Vault(private val config: Config, engine: HttpClientEngine = Apache.create
 
     @OptIn(ExperimentalSerializationApi::class)
     private val client = HttpClient(engine) {
-        install(Logging) {
-            level = LogLevel.BODY
-        }
         install(ContentNegotiation) {
             json(Json {
                 allowTrailingComma = true
@@ -34,13 +24,12 @@ class Vault(private val config: Config, engine: HttpClientEngine = Apache.create
         }
     }
 
-    class VaultError(cause: VaultErrorResponse?) : Throwable(cause?.toString().orEmpty())
+    class VaultError(statusCode: HttpStatusCode, message: String)
+        : Throwable("Vault error: $statusCode - $message")
 
     private val configure: HttpRequestBuilder.() -> Unit = {
-        if (config.token.isNotBlank()) {
-            headers { bearerAuth(config.token) }
-        }
-
+        // トークンが空の時は、ベアラー認証を行わない
+        if (config.token.isNotBlank()) { bearerAuth(config.token) }
         contentType(ContentType.Application.Json)
     }
 
@@ -76,19 +65,26 @@ class Vault(private val config: Config, engine: HttpClientEngine = Apache.create
         handleVaultResponse(post(url, block), HttpStatusCode.OK) { it.body() }
     }
 
-    suspend inline fun deleteOrVaultError(
+    suspend fun deleteOrVaultError(
         url: String,
-        noinline block: HttpRequestBuilder.() -> Unit = {}
+        block: HttpRequestBuilder.() -> Unit = {}
     ): Result<Unit> = runCatching {
         handleVaultResponse(delete(url, block), HttpStatusCode.NoContent) { it.body() }
     }
 
-    suspend inline fun <R> handleVaultResponse(response: HttpResponse, successStatus: HttpStatusCode, transform: (HttpResponse) -> R): R {
+    suspend fun <R> handleVaultResponse(response: HttpResponse, successStatus: HttpStatusCode, transform: suspend (HttpResponse) -> R): R {
         return if (response.status == successStatus) {
             transform(response)
         } else {
-            if (response.bodyAsBytes().isEmpty()) throw VaultError(null)
-            else throw VaultError(response.body())
+            if (response.bodyAsBytes().isEmpty()) {
+                when (response.status) {
+                    HttpStatusCode.Unauthorized -> throw VaultError(response.status, "Unauthorized")
+                    HttpStatusCode.Forbidden -> throw VaultError(response.status, "Forbidden")
+                    HttpStatusCode.NotFound -> throw VaultError(response.status, "Not Found")
+                    else -> throw VaultError(response.status, "No description")
+                }
+            }
+            else throw VaultError(response.body(), response.body<List<String>>().joinToString())
         }
     }
 }

@@ -2,7 +2,6 @@ package dev.westelh
 
 import dev.westelh.vault.Vault
 import dev.westelh.vault.Config
-import dev.westelh.vault.api.VaultErrorResponse
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.ktor.client.engine.mock.*
@@ -37,7 +36,7 @@ class ClientTest {
 
     @Test
     fun testReadTokenEmptyError(): Unit = runBlocking {
-        val engine = createMockEngineRespondsWithErrors(VaultErrorResponse(emptyList()), HttpStatusCode.OK)
+        val engine = createMockEngineRespondsWithErrors(emptyList(), HttpStatusCode.OK)
         val client = createTestClient(engine)
 
         val result = client.readToken("test")

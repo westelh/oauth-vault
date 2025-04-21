@@ -1,6 +1,5 @@
 package dev.westelh
 
-import dev.westelh.vault.api.VaultErrorResponse
 import io.ktor.client.engine.mock.*
 import io.ktor.http.*
 import io.ktor.utils.io.*
@@ -8,7 +7,7 @@ import kotlinx.serialization.json.Json
 
 private val jsonContent = headersOf(HttpHeaders.ContentType, "application/json")
 
-fun createMockEngineRespondsWithErrors(error: VaultErrorResponse, status: HttpStatusCode): MockEngine {
+fun createMockEngineRespondsWithErrors(error: List<String>, status: HttpStatusCode): MockEngine {
     return MockEngine { _ ->
         respond(
             content = Json.encodeToString(error),
@@ -19,8 +18,8 @@ fun createMockEngineRespondsWithErrors(error: VaultErrorResponse, status: HttpSt
 }
 
 fun createMockEngineNotAuthorized(): MockEngine {
-    val content = VaultErrorResponse(listOf("permission denied"))
-    return createMockEngineRespondsWithErrors(content, HttpStatusCode.Forbidden)
+    val error = listOf("permission denied")
+    return createMockEngineRespondsWithErrors(error, HttpStatusCode.Forbidden)
 }
 
 fun createMockEngineFromResource(resourcePath: String, status: HttpStatusCode = HttpStatusCode.OK): MockEngine {
