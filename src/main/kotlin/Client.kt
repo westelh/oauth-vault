@@ -1,10 +1,9 @@
 package dev.westelh
 
 import dev.westelh.vault.*
-import dev.westelh.vault.api.kv.KvV2WriteMetadataRequest
-import dev.westelh.vault.api.kv.KvV2WriteSecretRequest
-import dev.westelh.vault.api.kv.KvV2WriteSecretResponse
-import io.ktor.server.application.*
+import dev.westelh.vault.api.kv.v2.request.PutSecretMetadataRequest
+import dev.westelh.vault.api.kv.v2.request.PutSecretRequest
+import dev.westelh.vault.api.kv.v2.request.KvV2WriteSecretResponse
 import io.ktor.server.config.*
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromJsonElement
@@ -26,7 +25,7 @@ class Client(private val vault: Vault, private val mount: String) {
     }
 
     suspend fun writeToken(boundUserId: String, token: OAuthCodes): Result<KvV2WriteSecretResponse> {
-        val payload = KvV2WriteSecretRequest(Json.encodeToJsonElement(token))
+        val payload = PutSecretRequest(Json.encodeToJsonElement(token))
         return vault.writeKvV2Secret(mount, uniquePath(boundUserId), payload)
     }
 
@@ -37,7 +36,7 @@ class Client(private val vault: Vault, private val mount: String) {
     }
 
     suspend fun writeTokenMetadata(boundUserId: String, metadata: UserProfile): Result<Unit> {
-        return vault.writeKvV2Metadata(mount, uniquePath(boundUserId), KvV2WriteMetadataRequest(metadata))
+        return vault.writeKvV2Metadata(mount, uniquePath(boundUserId), PutSecretMetadataRequest(metadata))
     }
 
     suspend fun deleteToken(boundUserId: String): Result<Unit> {

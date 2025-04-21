@@ -2,12 +2,10 @@ package dev.westelh
 
 import dev.westelh.vault.Vault
 import dev.westelh.vault.IdentityPathBuilder
-import dev.westelh.vault.api.identity.GetOidcClientResponse
+import dev.westelh.vault.api.identity.response.GetOidcClientResponse
 import io.ktor.client.*
-import io.ktor.client.call.*
 import io.ktor.client.engine.apache.*
 import io.ktor.client.plugins.contentnegotiation.*
-import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*

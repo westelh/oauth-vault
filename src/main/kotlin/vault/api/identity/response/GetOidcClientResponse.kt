@@ -1,4 +1,4 @@
-package dev.westelh.vault.api.identity
+package dev.westelh.vault.api.identity.response
 
 import dev.westelh.vault.api.GetSecretResponse
 import kotlinx.serialization.SerialName

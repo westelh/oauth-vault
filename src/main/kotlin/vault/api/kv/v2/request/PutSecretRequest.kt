@@ -1,4 +1,4 @@
-package dev.westelh.vault.api.kv
+package dev.westelh.vault.api.kv.v2.request
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -6,7 +6,7 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 
 @Serializable
-data class KvV2WriteSecretRequest(
+data class PutSecretRequest(
     val data: JsonElement,
     val options: Options? = null
 ) {

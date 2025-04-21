@@ -1,9 +1,10 @@
 package dev.westelh.vault
 
 class IdentityPathBuilder(origin: String) {
+
+    // OIDC Provider
     private val oidcPath = "$origin/v1/identity/oidc"
 
-    // OIDC
     fun buildOidcProviderPath(provider: String): String = "$oidcPath/$provider"
     fun buildOidcProvidersPath(): String = "$oidcPath/provider"
 

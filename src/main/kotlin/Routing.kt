@@ -1,6 +1,6 @@
 package dev.westelh
 
-import dev.westelh.vault.api.kv.KvV2WriteSecretResponse
+import dev.westelh.vault.api.kv.v2.request.KvV2WriteSecretResponse
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*

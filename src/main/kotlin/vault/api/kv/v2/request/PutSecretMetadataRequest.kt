@@ -1,4 +1,4 @@
-package dev.westelh.vault.api.kv
+package dev.westelh.vault.api.kv.v2.request
 
 import dev.westelh.UserProfile
 import kotlinx.serialization.SerialName
@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 
 // https://developer.hashicorp.com/vault/api-docs/secret/kv/kv-v2#create-update-metadata
 @Serializable
-data class KvV2WriteMetadataRequest (
+data class PutSecretMetadataRequest (
     @SerialName("custom_metadata")
     val customMetadata: UserProfile,
     @SerialName("max-versions")
@@ -16,5 +16,3 @@ data class KvV2WriteMetadataRequest (
     @SerialName("delete_version_after")
     val deleteVersionAfter: String = "0s",
 )
-
-// KvV2WriteMetadata does not have a response body. API returns 204 No Content.
