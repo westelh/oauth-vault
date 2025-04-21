@@ -49,9 +49,9 @@ fun Application.configureSecurity() {
 
                 val clientName = property("client").getString()
                 val oidc = runBlocking {
-                    vault.get(IdentityPathBuilder(origin).buildOidcClientPath(clientName)) {
-                    }.body<GetOidcClientResponse>()
-                }
+                    val url = IdentityPathBuilder(origin).buildOidcClientPath(clientName)
+                    vault.getOrVaultError<GetOidcClientResponse>(url)
+                }.getOrThrow()
 
                 client = http
                 urlProvider = { property("callback").getString() }
