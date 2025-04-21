@@ -78,7 +78,7 @@ fun Application.configureSecurity() {
         oauth("auth-oauth-google") {
             with(env.config.config("google.oauth")) {
                 urlProvider = { property("callback").getString() }
-                client = HttpClient(Apache)
+                client = http
                 providerLookup = {
                     OAuthServerSettings.OAuth2ServerSettings(
                         name = "google",
