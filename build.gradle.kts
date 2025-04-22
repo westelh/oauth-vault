@@ -35,6 +35,7 @@ dependencies {
     implementation(libs.ktor.server.html.builder)
     implementation(libs.ktor.client.auth)
     implementation(libs.ktor.client.logging)
+    implementation("com.nimbusds:nimbus-jose-jwt:10.2")
     testImplementation(libs.ktor.client.test)
     testImplementation(libs.ktor.server.test.host)
     testImplementation(libs.kotlin.test.junit)

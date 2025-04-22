@@ -5,6 +5,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 typealias GetOidcClientResponse = GetSecretResponse<GetOidcClientResponseData>
+typealias ListOidcClientsResponse = GetSecretResponse<ListResponseDataWithKeyInfo<GetOidcClientResponseData>>
 
 @Serializable
 data class GetOidcClientResponseData(

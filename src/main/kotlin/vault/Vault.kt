@@ -15,7 +15,7 @@ import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 
-class Vault(private val config: Config, engine: HttpClientEngine = Apache.create {  }) {
+class Vault(private val config: Config, engine: HttpClientEngine = Apache.create { }) {
     private val v1 = "${config.address}/v1"
 
     @OptIn(ExperimentalSerializationApi::class)
@@ -27,7 +27,7 @@ class Vault(private val config: Config, engine: HttpClientEngine = Apache.create
         }
     }
 
-    class VaultError(response: HttpResponse, body: ErrorResponse): Throwable(toString(response, body)) {
+    class VaultError(response: HttpResponse, body: ErrorResponse) : Throwable(toString(response, body)) {
         companion object {
             private fun toString(response: HttpResponse, body: ErrorResponse): String {
                 val statusCode = response.status
@@ -39,7 +39,9 @@ class Vault(private val config: Config, engine: HttpClientEngine = Apache.create
 
     private val configure: HttpRequestBuilder.() -> Unit = {
         // トークンが空の時は、ベアラー認証を行わない
-        if (config.token.isNotBlank()) { bearerAuth(config.token) }
+        if (config.token.isNotBlank()) {
+            bearerAuth(config.token)
+        }
         contentType(ContentType.Application.Json)
     }
 
@@ -68,6 +70,13 @@ class Vault(private val config: Config, engine: HttpClientEngine = Apache.create
         handleVaultResponse(get(path, block), HttpStatusCode.OK) { it.body() }
     }
 
+    suspend inline fun <reified R> listOrVaultError(
+        path: String,
+        noinline block: HttpRequestBuilder.() -> Unit = {}
+    ): Result<R> = runCatching {
+        handleVaultResponse(get(path, block), HttpStatusCode.OK) { it.body() }
+    }
+
     suspend inline fun <reified R> postOrVaultError(
         path: String,
         noinline block: HttpRequestBuilder.() -> Unit = {}
@@ -82,13 +91,18 @@ class Vault(private val config: Config, engine: HttpClientEngine = Apache.create
         handleVaultResponse(delete(path, block), HttpStatusCode.NoContent) { it.body() }
     }
 
-    suspend fun <R> handleVaultResponse(response: HttpResponse, successStatus: HttpStatusCode, transform: suspend (HttpResponse) -> R): R {
+    suspend fun <R> handleVaultResponse(
+        response: HttpResponse,
+        successStatus: HttpStatusCode,
+        transform: suspend (HttpResponse) -> R
+    ): R {
         return if (response.status == successStatus) {
             transform(response)
         } else {
             throw VaultError(response, response.body())
         }
     }
+
 }
 
 fun Vault.kv(mount: String): Kv = Kv(this, mount)

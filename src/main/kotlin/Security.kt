@@ -44,7 +44,7 @@ fun Application.configureSecurity() {
 
                 val clientName = property("client").getString()
                 val oidc = runBlocking {
-                    identity.getOidcClient(clientName)
+                    identity.readOidcClient(clientName)
                 }.getOrThrow()
 
                 client = http
