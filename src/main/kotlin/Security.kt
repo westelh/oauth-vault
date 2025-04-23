@@ -1,6 +1,8 @@
 package dev.westelh
 
 import dev.westelh.vault.Vault
+import dev.westelh.vault.api.identity.Identity
+import dev.westelh.vault.api.identity.response.GetOidcClientResponse
 import dev.westelh.vault.identity
 import io.ktor.client.*
 import io.ktor.client.engine.apache.*
@@ -10,6 +12,7 @@ import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
+import io.ktor.server.config.*
 import io.ktor.server.response.*
 import kotlinx.coroutines.runBlocking
 
@@ -39,24 +42,19 @@ fun Application.configureSecurity() {
         }
 
         oauth("auth-oauth-vault") {
+            val oidcClient = fetchOidcClientInfo(env.config)
+
             with(env.config.config("vault.oauth")) {
-                val identity = Vault(VaultApplicationConfig(env.config)).identity()
-
-                val clientName = property("client").getString()
-                val oidc = runBlocking {
-                    identity.readOidcClient(clientName)
-                }.getOrThrow()
-
                 client = http
                 urlProvider = { property("callback").getString() }
                 providerLookup = {
                     OAuthServerSettings.OAuth2ServerSettings(
                         name = "vault",
                         requestMethod = HttpMethod.Post,
-                        authorizeUrl = property("authorizeUrl").getString(),
-                        accessTokenUrl = property("accessTokenUrl").getString(),
-                        clientId = oidc.data.clientId,
-                        clientSecret = oidc.data.clientSecret,
+                        authorizeUrl = buildOidcAuthorizationEndpointPath(env.config),
+                        accessTokenUrl = buildOidcTokenEndpointPath(env.config),
+                        clientId = oidcClient.data.clientId,
+                        clientSecret = oidcClient.data.clientSecret,
                         defaultScopes = property("scopes").getList(),
                         onStateCreated = { call, _->
                             call.request.queryParameters["error"]?.let {
@@ -92,4 +90,24 @@ fun Application.configureSecurity() {
             }
         }
     }
+}
+
+private fun fetchOidcClientInfo(config: ApplicationConfig): GetOidcClientResponse {
+    val clientName = config.property("vault.oauth.client").getString()
+    val identity = Vault(VaultApplicationConfig(config)).identity()
+    return runBlocking { identity.readOidcClient(clientName).getOrThrow() }
+}
+
+private fun buildOidcAuthorizationEndpointPath(config: ApplicationConfig): String {
+    val origin = config.property("vault.addr").getString()
+    val providerName = config.property("vault.oauth.provider").getString()
+    val path = Identity.IdentityPathBuilder().buildOidcAuthorizationEndpointPath(providerName)
+    return "$origin/v1/$path"
+}
+
+private fun buildOidcTokenEndpointPath(config: ApplicationConfig): String {
+    val origin = config.property("vault.addr").getString()
+    val providerName = config.property("vault.oauth.provider").getString()
+    val path = Identity.IdentityPathBuilder().buildOidcTokenEndpointPath(providerName)
+    return "$origin/v1/$path"
 }
