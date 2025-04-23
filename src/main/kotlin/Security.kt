@@ -51,8 +51,8 @@ fun Application.configureSecurity() {
                     OAuthServerSettings.OAuth2ServerSettings(
                         name = "vault",
                         requestMethod = HttpMethod.Post,
-                        authorizeUrl = buildOidcAuthorizationEndpointPath(env.config),
-                        accessTokenUrl = buildOidcTokenEndpointPath(env.config),
+                        authorizeUrl = buildOidcAuthorizationEndpointUrl(env.config),
+                        accessTokenUrl = buildOidcTokenEndpointUrl(env.config),
                         clientId = oidcClient.data.clientId,
                         clientSecret = oidcClient.data.clientSecret,
                         defaultScopes = property("scopes").getList(),
@@ -98,14 +98,13 @@ private fun fetchOidcClientInfo(config: ApplicationConfig): GetOidcClientRespons
     return runBlocking { identity.readOidcClient(clientName).getOrThrow() }
 }
 
-private fun buildOidcAuthorizationEndpointPath(config: ApplicationConfig): String {
+private fun buildOidcAuthorizationEndpointUrl(config: ApplicationConfig): String {
     val origin = config.property("vault.addr").getString()
     val providerName = config.property("vault.oauth.provider").getString()
-    val path = Identity.IdentityPathBuilder().buildOidcAuthorizationEndpointPath(providerName)
-    return "$origin/v1/$path"
+    return "$origin/ui/vault/identity/oidc/provider/$providerName/authorize"
 }
 
-private fun buildOidcTokenEndpointPath(config: ApplicationConfig): String {
+private fun buildOidcTokenEndpointUrl(config: ApplicationConfig): String {
     val origin = config.property("vault.addr").getString()
     val providerName = config.property("vault.oauth.provider").getString()
     val path = Identity.IdentityPathBuilder().buildOidcTokenEndpointPath(providerName)
