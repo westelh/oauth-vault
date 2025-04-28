@@ -48,39 +48,39 @@ class Vault(private val config: Config, engine: HttpClientEngine) {
 
     suspend fun get(path: String, block: HttpRequestBuilder.() -> Unit = {}): HttpResponse =
         client.get("$v1/$path") {
-            configure()
             block()
+            configure()
         }
 
     suspend fun post(path: String, block: HttpRequestBuilder.() -> Unit = {}): HttpResponse =
         client.post("$v1/$path") {
-            configure()
             block()
+            configure()
         }
 
     suspend fun list(path: String, block: HttpRequestBuilder.() -> Unit = {}): HttpResponse =
         client.request("$v1/$path") {
             method = HttpMethod("LIST")
-            configure()
             block()
+            configure()
         }
 
     suspend fun delete(path: String, block: HttpRequestBuilder.() -> Unit = {}): HttpResponse =
         client.delete("$v1/$path") {
-            configure()
             block()
+            configure()
         }
 
     suspend fun patch(path: String, block: HttpRequestBuilder.() -> Unit = {}): HttpResponse =
         client.patch("$v1/$path") {
-            configure()
             block()
+            configure()
         }
 
     suspend fun put(path: String, block: HttpRequestBuilder.() -> Unit = {}): HttpResponse =
         client.put("$v1/$path") {
-            configure()
             block()
+            configure()
         }
 
     suspend inline fun <reified R> getOrVaultError(
