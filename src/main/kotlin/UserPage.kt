@@ -2,28 +2,14 @@ package dev.westelh
 
 import dev.westelh.model.OAuthCodes
 import dev.westelh.model.expiresAt
-import io.ktor.client.HttpClient
-import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.Application
-import io.ktor.server.application.plugin
-import io.ktor.server.auth.Authentication
-import io.ktor.server.auth.OAuthAccessTokenResponse
-import io.ktor.server.auth.authenticate
-import io.ktor.server.auth.authentication
-import io.ktor.server.auth.oauth
-import io.ktor.server.html.respondHtml
-import io.ktor.server.response.respond
-import io.ktor.server.response.respondRedirect
-import io.ktor.server.routing.RoutingContext
-import io.ktor.server.routing.get
-import io.ktor.server.routing.head
-import io.ktor.server.routing.route
-import io.ktor.server.routing.routing
-import io.ktor.server.sessions.SessionStorageMemory
-import io.ktor.server.sessions.Sessions
-import io.ktor.server.sessions.cookie
-import io.ktor.server.sessions.get
-import io.ktor.server.sessions.sessions
+import io.ktor.client.*
+import io.ktor.http.*
+import io.ktor.server.application.*
+import io.ktor.server.auth.*
+import io.ktor.server.html.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
+import io.ktor.server.sessions.*
 import kotlinx.html.body
 import kotlinx.html.h1
 import kotlinx.html.p
@@ -53,6 +39,7 @@ fun Application.configureUserPage(httpClient: HttpClient = applicationHttpClient
         route("/user") {
             install(Sessions) {
                 cookie<OAuthCodes>("oauth_principal", SessionStorageMemory()) {
+
                 }
             }
 
