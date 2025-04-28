@@ -1,5 +1,7 @@
-package dev.westelh
+package dev.westelh.service
 
+import dev.westelh.JwkProvider
+import dev.westelh.model.OAuthCodes
 import io.ktor.server.auth.OAuthAccessTokenResponse
 
 class Service(

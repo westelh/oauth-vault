@@ -1,7 +1,7 @@
 package dev.westelh.vault.api.identity.response
 
 import com.nimbusds.jose.jwk.JWK
-import dev.westelh.oidc.OpenIdProviderMetadata
+import dev.westelh.model.OpenIdProviderMetadata
 
 // Provider Configuration
 typealias GetOidcProviderConfigurationResponse = OpenIdProviderMetadata

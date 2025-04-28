@@ -1,4 +1,4 @@
-package dev.westelh.oidc
+package dev.westelh.model
 
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName

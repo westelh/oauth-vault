@@ -1,11 +1,11 @@
-package dev.westelh
+package dev.westelh.service
 
+import dev.westelh.model.UserProfile
 import google.api.GoogleRefreshTokenRequest
 import google.api.GoogleRefreshTokenResponse
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.HttpClientEngine
-import io.ktor.client.engine.apache.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.http.*

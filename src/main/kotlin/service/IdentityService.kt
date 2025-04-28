@@ -1,10 +1,10 @@
-package dev.westelh
+package dev.westelh.service
 
+import dev.westelh.VaultApplicationConfig
 import dev.westelh.vault.Vault
 import dev.westelh.vault.api.identity.Identity
 import dev.westelh.vault.identity
 import io.ktor.client.engine.HttpClientEngine
-import io.ktor.client.engine.apache.Apache
 import io.ktor.http.HttpMethod
 import io.ktor.server.application.log
 import io.ktor.server.auth.OAuthServerSettings

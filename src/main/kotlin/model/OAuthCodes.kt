@@ -1,4 +1,4 @@
-package dev.westelh
+package dev.westelh.model
 
 import io.ktor.server.auth.*
 import io.ktor.util.*

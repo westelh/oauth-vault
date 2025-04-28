@@ -1,5 +1,8 @@
-package dev.westelh
+package dev.westelh.service
 
+import dev.westelh.VaultApplicationConfig
+import dev.westelh.model.OAuthCodes
+import dev.westelh.model.UserProfile
 import dev.westelh.vault.Vault
 import dev.westelh.vault.api.kv.v2.Kv
 import dev.westelh.vault.api.kv.v2.request.PatchSecretRequest
