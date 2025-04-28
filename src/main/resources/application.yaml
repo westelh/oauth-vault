@@ -2,6 +2,8 @@ ktor:
     application:
         modules:
             - dev.westelh.ApplicationKt.module
+            - dev.westelh.ApplicationKt.ui
+            - dev.westelh.ApplicationKt.api
     development: true
     deployment:
         host: localhost

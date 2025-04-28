@@ -14,6 +14,7 @@ import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.*
 import io.ktor.server.config.*
+import kotlinx.html.A
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 
@@ -24,9 +25,15 @@ fun main(args: Array<String>) {
 fun Application.module() {
     configureSecurity()
     configureRouting()
+}
+
+fun Application.ui() {
     configureUserPage()
-    configureGoogle()
+}
+
+fun Application.api() {
     configureApi()
+    configureGoogle()
 }
 
 @OptIn(ExperimentalSerializationApi::class)
