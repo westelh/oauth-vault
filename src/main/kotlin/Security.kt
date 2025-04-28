@@ -9,9 +9,7 @@ import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
-import io.ktor.server.config.*
 import io.ktor.server.response.*
-import kotlinx.coroutines.runBlocking
 
 fun Application.configureSecurity() {
     val env = this.environment

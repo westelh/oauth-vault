@@ -1,10 +1,12 @@
 package dev.westelh.vault.api.identity
 
 import dev.westelh.vault.Vault
-import dev.westelh.vault.api.identity.request.*
+import dev.westelh.vault.api.identity.request.PutOidcAssignmentRequest
+import dev.westelh.vault.api.identity.request.PutOidcClientRequest
+import dev.westelh.vault.api.identity.request.PutOidcProviderRequest
+import dev.westelh.vault.api.identity.request.PutOidcScopeRequest
 import dev.westelh.vault.api.identity.response.*
 import io.ktor.client.request.*
-import kotlinx.html.S
 
 class Identity(private val vault: Vault) {
     class IdentityPathBuilder {

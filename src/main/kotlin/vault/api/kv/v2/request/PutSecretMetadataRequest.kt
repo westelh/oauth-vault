@@ -3,7 +3,6 @@ package dev.westelh.vault.api.kv.v2.request
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonObject
 
 typealias PatchSecretMetadataRequest = PutSecretMetadataRequest
 
