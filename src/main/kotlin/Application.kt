@@ -8,13 +8,11 @@ import dev.westelh.vault.Vault
 import dev.westelh.vault.identity
 import dev.westelh.vault.kv
 import io.ktor.client.HttpClient
-import io.ktor.client.engine.*
 import io.ktor.client.engine.apache.*
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.*
 import io.ktor.server.config.*
-import kotlinx.html.A
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 
@@ -22,7 +20,7 @@ fun main(args: Array<String>) {
     io.ktor.server.netty.EngineMain.main(args)
 }
 
-fun Application.module() {
+fun Application.base() {
     configureSecurity()
     configureRouting()
 }

@@ -1,7 +1,7 @@
 ktor:
     application:
         modules:
-            - dev.westelh.ApplicationKt.module
+            - dev.westelh.ApplicationKt.base
     development: true
     deployment:
         host: localhost
