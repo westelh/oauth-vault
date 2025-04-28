@@ -1,14 +1,16 @@
 package dev.westelh.vault.api.kv.v2.request
 
-import dev.westelh.UserProfile
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
 
-// https://developer.hashicorp.com/vault/api-docs/secret/kv/kv-v2#create-update-metadata
+typealias PatchSecretMetadataRequest = PutSecretMetadataRequest
+
 @Serializable
 data class PutSecretMetadataRequest (
     @SerialName("custom_metadata")
-    val customMetadata: UserProfile,
+    val customMetadata: JsonElement,
     @SerialName("max-versions")
     val maxVersions: Int = 0,
     @SerialName("cas_required")

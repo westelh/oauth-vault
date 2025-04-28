@@ -1,87 +1,96 @@
 package dev.westelh.vault.api.kv.v2
 
 import dev.westelh.vault.Vault
-import dev.westelh.vault.api.kv.v2.request.DeleteSecretVersionsRequest
-import dev.westelh.vault.api.kv.v2.request.PutSecretMetadataRequest
-import dev.westelh.vault.api.kv.v2.request.PutSecretRequest
-import dev.westelh.vault.api.kv.v2.response.GetSecretMetadataResponse
-import dev.westelh.vault.api.kv.v2.response.GetSecretVersionResponse
-import dev.westelh.vault.api.kv.v2.response.PutSecretResponse
+import dev.westelh.vault.api.kv.v2.request.*
+import dev.westelh.vault.api.kv.v2.response.*
 import io.ktor.client.request.*
 
 class Kv(private val vault: Vault, private val mount: String) {
-    // Configure the KV engine
-    // https://developer.hashicorp.com/vault/api-docs/secret/kv/kv-v2#configure-the-kv-engine
-    // suspend fun writeConfig(payload: KvV2ConfigureRequest): Result<KvV2ConfigureResponse>
+    class PathBuilder(private val mount: String) {
+        fun buildConfigurationPath(): String = "$mount/config"
+        fun buildSecretDataPath(path: String, version: Int?): String
+            = "$mount/data/$path".appendVersionQueryIfNotNull(version)
+        fun buildSecretSubkeysPath(path: String, version: Int?): String
+            = "$mount/subkeys/$path".appendVersionQueryIfNotNull(version)
+        fun buildSecretDeletePath(path: String): String = "$mount/delete/$path"
+        fun buildSecretUndeletePath(path: String): String = "$mount/undelete/$path"
+        fun buildSecretDestroyPath(path: String): String = "$mount/destroy/$path"
+        fun buildSecretMetadataPath(path: String): String = "$mount/metadata/$path"
+    }
 
-    // Read KV engine configuration
-    // https://developer.hashicorp.com/vault/api-docs/secret/kv/kv-v2#read-kv-engine-configuration
-    // suspend fun readConfig()
+    private val pathBuilder = PathBuilder(mount)
+
+    // Configuration
+    suspend fun writeConfig(payload: PutKvConfigRequest): Result<Unit>
+        = vault.postOrVaultError(pathBuilder.buildConfigurationPath())
+
+    suspend fun readConfig(): Result<GetKvConfigResponse>
+        = vault.getOrVaultError(pathBuilder.buildConfigurationPath())
 
     // Read secret version
-    // https://developer.hashicorp.com/vault/api-docs/secret/kv/kv-v2#read-secret-version
+    suspend fun readSecretLatest(path: String): Result<GetSecretVersionResponse> =
+        vault.getOrVaultError(pathBuilder.buildSecretDataPath(path, null))
+
     suspend fun readSecretVersion(path: String, version: Int? = null): Result<GetSecretVersionResponse> =
-        vault.getOrVaultError("$mount/data/$path".appendVersionQueryIfNotNull(version))
+        vault.getOrVaultError(pathBuilder.buildSecretDataPath(path, version))
 
     // Create/Update secret
-    // https://developer.hashicorp.com/vault/api-docs/secret/kv/kv-v2#create-update-secret
     suspend fun writeSecret(path: String, payload: PutSecretRequest): Result<PutSecretResponse> =
-        vault.postOrVaultError("$mount/data/$path") {
+        vault.postOrVaultError(pathBuilder.buildSecretDataPath(path, null)) {
             setBody(payload)
         }
 
     // Patch secret
-    // https://developer.hashicorp.com/vault/api-docs/secret/kv/kv-v2#patch-secret
-    // suspend fun patchSecret(path: String, payload: PutSecretRequest): Result<PutSecretResponse> =
+    suspend fun patchSecret(path: String, payload: PatchSecretRequest): Result<PatchSecretResponse> =
+        vault.patchOrVaultError(pathBuilder.buildSecretDataPath(path, null)) {
+            setBody(payload)
+        }
 
     // Read secret subkeys
-    // https://developer.hashicorp.com/vault/api-docs/secret/kv/kv-v2#read-secret-subkeys
-    // suspend fun readSecretSubkeys(path: String): Result<KvV2ReadSecretSubkeysResponse>
+    suspend fun readSecretSubkeys(path: String, version: Int?): Result<GetSecretSubkeysResponse> =
+        vault.getOrVaultError(pathBuilder.buildSecretSubkeysPath(path, version))
 
-    // Delete latest version of secret
-    // https://developer.hashicorp.com/vault/api-docs/secret/kv/kv-v2#delete-latest-version-of-secret
+    // Delete
     suspend fun deleteLatestVersionOfSecret(path: String): Result<Unit> =
-        vault.deleteOrVaultError("$mount/data/$path")
+        vault.deleteOrVaultError(pathBuilder.buildSecretDataPath(path, null))
 
-    // Delete secret versions
-    // https://developer.hashicorp.com/vault/api-docs/secret/kv/kv-v2#delete-secret-versions
-    suspend fun deleteSecretVersions(path: String, payload: DeleteSecretVersionsRequest): Result<Unit> =
-        vault.postOrVaultError("$mount/delete/$path") {
+    suspend fun deleteSecretVersions(path: String, payload: SecretVersionSpec): Result<Unit> =
+        vault.postOrVaultError(pathBuilder.buildSecretDeletePath(path)) {
             setBody(payload)
         }
 
-    // Undelete secret versions
-    // https://developer.hashicorp.com/vault/api-docs/secret/kv/kv-v2#undelete-secret-versions
-    suspend fun undeleteSecretVersions(path: String, payload: DeleteSecretVersionsRequest): Result<Unit> =
-        vault.postOrVaultError("$mount/undelete/$path") {
+    suspend fun undeleteSecretVersions(path: String, payload: SecretVersionSpec): Result<Unit> =
+        vault.postOrVaultError(pathBuilder.buildSecretUndeletePath(path)) {
             setBody(payload)
         }
 
-    // Destroy secret versions
-    suspend fun destroySecretVersions(path: String, payload: DeleteSecretVersionsRequest): Result<Unit> =
-        vault.postOrVaultError("$mount/destroy/$path") {
+    // Destroy
+    suspend fun destroySecretVersions(path: String, payload: SecretVersionSpec): Result<Unit> =
+        vault.putOrVaultError<Unit>(pathBuilder.buildSecretDestroyPath(path)) {
             setBody(payload)
         }
 
-    // List secret versions
-    // suspend fun listSecretVersions(path: String): Result<List<Int>>
+    // List
+    suspend fun listSecrets(path: String): Result<ListSecretsResponse>
+        = vault.listOrVaultError(pathBuilder.buildSecretMetadataPath(path))
 
-    // Read secret metadata
+    // Metadata
     suspend fun readSecretMetadata(path: String): Result<GetSecretMetadataResponse> =
-        vault.getOrVaultError("$mount/metadata/$path")
+        vault.getOrVaultError(pathBuilder.buildSecretMetadataPath(path))
 
-    // Create/Update metadata
     suspend fun writeSecretMetadata(path: String, payload: PutSecretMetadataRequest): Result<Unit> =
-        vault.postOrVaultError("$mount/metadata/$path") {
+        vault.postOrVaultError(pathBuilder.buildSecretMetadataPath(path)) {
             setBody(payload)
         }
 
-    // Patch metadata
-    // suspend fun pathSecretMetadata(path: String, payload: PutSecretMetadataRequest): Result<Unit> =
+    suspend fun patchSecretMetadata(path: String, payload: PatchSecretMetadataRequest): Result<Unit> =
+        vault.patchOrVaultError(pathBuilder.buildSecretMetadataPath(path)) {
+            setBody(payload)
+        }
 
     // Delete metadata and all versions
     suspend fun deleteMetadataAndAllVersions(path: String): Result<Unit> =
-        vault.deleteOrVaultError("$mount/metadata/$path")
+        vault.deleteOrVaultError(pathBuilder.buildSecretMetadataPath(path))
 }
 
 private fun String.appendVersionQueryIfNotNull(version: Int?): String {

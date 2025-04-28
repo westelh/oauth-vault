@@ -17,6 +17,7 @@ import kotlinx.serialization.json.Json
 
 class Vault(private val config: Config, engine: HttpClientEngine = Apache.create { }) {
     private val v1 = "${config.address}/v1"
+    private val ui = "${config.address}/ui/vault"
 
     @OptIn(ExperimentalSerializationApi::class)
     private val client = HttpClient(engine) {
@@ -27,12 +28,12 @@ class Vault(private val config: Config, engine: HttpClientEngine = Apache.create
         }
     }
 
-    class VaultError(response: HttpResponse, body: ErrorResponse) : Throwable(toString(response, body)) {
+    class VaultError(val response: HttpResponse, val body: ErrorResponse) : Throwable(toString(response, body)) {
         companion object {
             private fun toString(response: HttpResponse, body: ErrorResponse): String {
                 val statusCode = response.status
                 val at = response.request.url
-                return "$statusCode at ${at} - $body"
+                return "$statusCode at $at - $body"
             }
         }
     }
@@ -57,8 +58,27 @@ class Vault(private val config: Config, engine: HttpClientEngine = Apache.create
             block()
         }
 
+    suspend fun list(path: String, block: HttpRequestBuilder.() -> Unit = {}): HttpResponse =
+        client.request("$v1/$path") {
+            method = HttpMethod("LIST")
+            configure()
+            block()
+        }
+
     suspend fun delete(path: String, block: HttpRequestBuilder.() -> Unit = {}): HttpResponse =
         client.delete("$v1/$path") {
+            configure()
+            block()
+        }
+
+    suspend fun patch(path: String, block: HttpRequestBuilder.() -> Unit = {}): HttpResponse =
+        client.patch("$v1/$path") {
+            configure()
+            block()
+        }
+
+    suspend fun put(path: String, block: HttpRequestBuilder.() -> Unit = {}): HttpResponse =
+        client.put("$v1/$path") {
             configure()
             block()
         }
@@ -74,7 +94,7 @@ class Vault(private val config: Config, engine: HttpClientEngine = Apache.create
         path: String,
         noinline block: HttpRequestBuilder.() -> Unit = {}
     ): Result<R> = runCatching {
-        handleVaultResponse(get(path, block), HttpStatusCode.OK) { it.body() }
+        handleVaultResponse(list(path, block), HttpStatusCode.OK) { it.body() }
     }
 
     suspend inline fun <reified R> postOrVaultError(
@@ -91,6 +111,20 @@ class Vault(private val config: Config, engine: HttpClientEngine = Apache.create
         handleVaultResponse(delete(path, block), HttpStatusCode.NoContent) { it.body() }
     }
 
+    suspend inline fun <reified R> patchOrVaultError(
+        path: String,
+        noinline block: HttpRequestBuilder.() -> Unit = {}
+    ): Result<R> = runCatching {
+        handleVaultResponse(patch(path, block), HttpStatusCode.OK) { it.body() }
+    }
+
+    suspend inline fun <reified R> putOrVaultError(
+        path: String,
+        noinline block: HttpRequestBuilder.() -> Unit = {}
+    ): Result<Unit> = runCatching {
+        handleVaultResponse(put(path, block), HttpStatusCode.OK) { it.body() }
+    }
+
     suspend fun <R> handleVaultResponse(
         response: HttpResponse,
         successStatus: HttpStatusCode,
@@ -103,6 +137,9 @@ class Vault(private val config: Config, engine: HttpClientEngine = Apache.create
         }
     }
 
+    fun oidcEndpointUrl(providerName: String): String {
+        return "$ui/identity/oidc/provider/$providerName/authorize"
+    }
 }
 
 fun Vault.kv(mount: String): Kv = Kv(this, mount)

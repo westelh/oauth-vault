@@ -4,6 +4,7 @@ import dev.westelh.vault.Vault
 import dev.westelh.vault.api.identity.request.*
 import dev.westelh.vault.api.identity.response.*
 import io.ktor.client.request.*
+import kotlinx.html.S
 
 class Identity(private val vault: Vault) {
     class IdentityPathBuilder {
@@ -37,7 +38,6 @@ class Identity(private val vault: Vault) {
         fun buildOidcUserInfoEndpointPath(providerName: String): String
                 = "$oidcPath/provider/$providerName/userinfo"
     }
-
     private val pathBuilder = IdentityPathBuilder()
 
     // Identity Token

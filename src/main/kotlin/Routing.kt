@@ -1,12 +1,13 @@
 package dev.westelh
 
+import dev.westelh.vault.Vault
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import kotlinx.datetime.Clock
 import kotlinx.serialization.json.Json
 
 fun Application.configureRouting() {
@@ -33,16 +34,11 @@ fun Application.configureRouting() {
 
             get("/callback") {
                 val principal: OAuthAccessTokenResponse.OAuth2 = call.authentication.principal()!!
-
-                // First login
-                if (principal.refreshToken != null) {
-                    val user = getUser(principal.accessToken)!!
-                    val vault = createVaultClient(environment.config)
-                    vault.writeToken(user.id, OAuthCodes(principal))
-                    vault.writeTokenMetadata(user.id, user)
+                buildApplicationService().initUser(principal).onSuccess {
+                    call.respondRedirect("/")
+                }.onFailure { e ->
+                    call.respond(e)
                 }
-
-                call.respondRedirect("/")
             }
         }
 
@@ -55,68 +51,40 @@ fun Application.configureRouting() {
 
             get("/user/metadata") {
                 ensureJWT { googleID ->
-                    val client = createVaultClient(environment.config)
-
-                    client.readTokenMetadata(googleID).onSuccess {
+                    buildApplicationService().kv.getUserProfile(googleID).onSuccess {
                         call.respond(it)
-                    }.onFailure {
-                        call.respond(HttpStatusCode.NotFound, "Metadata not found")
+                    }.onFailure { e ->
+                        call.respond(e)
                     }
                 }
             }
 
             get("/token") {
                 ensureJWT { googleID ->
-                    val client = createVaultClient(environment.config)
-                    client.readToken(googleID).handleFailureOr(call) { codes ->
+                    buildApplicationService().kv.getUserOauthCodes(googleID).onSuccess { codes ->
                         call.respond(Json.encodeToString(codes))
+                    }.onFailure { e ->
+                        call.respond(e)
                     }
                 }
             }
 
             post("/token/refresh") {
                 ensureJWT { googleID ->
-                    val client = createVaultClient(environment.config)
-
-                    // アカウントIDに対応するトークンを取得
-                    client.readToken(googleID).handleFailureOr(call) { token ->
-                        if (token.refreshToken != null) {
-                            val new = refresh(token.refreshToken)?.let {
-                                // accessToken, expiresIn, createdAtのみ更新
-                                token.copy(
-                                    accessToken = it.accessToken,
-                                    expiresIn = it.expiresIn,
-                                    createdAt = Clock.System.now()
-                                )
-                            }
-
-                            if (new != null) {
-                                client.writeToken(googleID, new).handleFailureOr(call) {
-                                    call.respond(HttpStatusCode.OK, "Successfully refreshed token")
-                                }
-                            } else { // new == null
-                                call.respond(HttpStatusCode.Forbidden, "Refresh token is invalid")
-                            }
-                        } else {  // token.refreshToken == null
-                            call.respond(HttpStatusCode.NotFound, "Refresh token not found")
-                        }
+                    buildApplicationService().getAndRefreshUserToken(googleID).onSuccess {
+                        call.respond(HttpStatusCode.OK, "Token refreshed")
+                    }.onFailure { e ->
+                        call.respond(e)
                     }
                 }
             }
 
             post("/token/delete") {
                 ensureJWT { googleID ->
-                    val client = createVaultClient(environment.config)
-
-                    client.readToken(googleID).handleFailureOr(call) { // user has codes on kv
-                        client.deleteToken(googleID).onSuccess {
-                            call.respond(HttpStatusCode.OK, "OAuth codes are deleted")
-                        }.onFailure {
-                            call.respond(
-                                HttpStatusCode.InternalServerError,
-                                "token is present on the server, but failed to delete it"
-                            )
-                        }
+                    buildApplicationService().kv.deleteUserOauthCodes(googleID).onSuccess {
+                        call.respond(HttpStatusCode.OK, "Token deleted")
+                    }.onFailure { e ->
+                        call.respond(e)
                     }
                 }
             }
@@ -140,20 +108,15 @@ suspend fun RoutingContext.ensureJWT(block: suspend RoutingContext.(googleID: St
     }
 }
 
-suspend fun Result<OAuthCodes>.handleFailureOr(call: ApplicationCall, block: suspend (codes: OAuthCodes) -> Unit) {
-    onSuccess { codes ->
-        block.invoke(codes)
-    }
-    onFailure {
-        call.respond(HttpStatusCode.InternalServerError, "Failed to read the token")
-    }
-}
+suspend fun RoutingCall.respond(e: Throwable) {
+    val path = this.request.path()
 
-suspend fun Result<Unit>.handleFailureOr(call: ApplicationCall, block: suspend () -> Unit) {
-    onSuccess {
-        block.invoke()
-    }
-    onFailure {
-        call.respond(HttpStatusCode.InternalServerError, "Failed to write the token")
+    when (e) {
+        is Vault.VaultError -> {
+            this.respond(e.response.status, "$path ${e.message}")
+        }
+        else -> {
+            this.respond(HttpStatusCode.InternalServerError, "Internal Server Error")
+        }
     }
 }

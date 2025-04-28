@@ -3,6 +3,8 @@ package dev.westelh.vault.api.kv.v2.request
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
 
+typealias PatchSecretRequest = PutSecretRequest
+
 @Serializable
 data class PutSecretRequest(
     val data: JsonElement,
