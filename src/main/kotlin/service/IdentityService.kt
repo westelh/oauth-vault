@@ -21,15 +21,15 @@ class IdentityService(private val identity: Identity) {
         return identity.readOidcProviderConfiguration(providerName)
     }
 
-    fun buildProviderLookup(providerName: String, scopes: List<String>): OAuthServerSettings.OAuth2ServerSettings {
+    fun buildProviderLookup(providerName: String, clientName: String, scopes: List<String>): OAuthServerSettings.OAuth2ServerSettings {
         val config = runBlocking { getOidcConfiguration(providerName) }.getOrThrow()
         return OAuthServerSettings.OAuth2ServerSettings(
             name = providerName,
             requestMethod = HttpMethod.Companion.Post,
             authorizeUrl = config.authorizationEndpoint,
             accessTokenUrl = config.tokenEndpoint!!,
-            clientId = runBlocking { getOidcClientId(providerName) }.getOrThrow(),
-            clientSecret = runBlocking { getOidcClientSecret(providerName) }.getOrThrow(),
+            clientId = runBlocking { getOidcClientId(clientName) }.getOrThrow(),
+            clientSecret = runBlocking { getOidcClientSecret(clientName) }.getOrThrow(),
             defaultScopes = scopes,
             onStateCreated = ::onOidcStateCreated
         )

@@ -43,13 +43,14 @@ fun Application.configureSecurity() {
 
         oauth("auth-oauth-vault") {
             with(env.config.config("vault.oauth")) {
-                val provider = property("provider").getString()
+                val providerName = property("provider").getString()
+                val clientName = property("client").getString()
                 val callback = property("callback").getString()
                 val scopes = property("scopes").getList()
 
                 client = http
                 urlProvider = { callback }
-                providerLookup = { id.buildProviderLookup(provider, scopes) }
+                providerLookup = { id.buildProviderLookup(providerName, clientName, scopes) }
             }
         }
 
