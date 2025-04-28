@@ -39,9 +39,9 @@ class Vault(private val config: Config, engine: HttpClientEngine) {
     }
 
     private val configure: HttpRequestBuilder.() -> Unit = {
-        // トークンが空の時は、ベアラー認証を行わない
-        if (config.token.isNotBlank()) {
-            bearerAuth(config.token)
+        // Authorizationヘッダが既に設定されている場合、上書きしない
+        if (headers["Authorization"] == null) {
+            if (config.token.isNotBlank()) bearerAuth(config.token)
         }
         contentType(ContentType.Application.Json)
     }
