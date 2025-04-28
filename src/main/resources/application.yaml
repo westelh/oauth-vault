@@ -23,7 +23,7 @@ vault:
     oauth:
         provider: default
         client: oauth-vault
-        callback: "http://localhost:8080/oidc/user/callback"
+        callback: "http://localhost:8080/user/oidc/callback"
         scopes:
             - openid
             - meta

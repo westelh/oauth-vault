@@ -26,7 +26,7 @@ interface IdentityService {
 
     fun buildOidcAuthorizationEndpointUrl(vaultAddr: String, providerName: String): String {
         // TODO: make this string reusable
-        return "$providerName/ui/vault/identity/oidc/provider/$providerName/authorize"
+        return "$vaultAddr/ui/vault/identity/oidc/provider/$providerName/authorize"
     }
 
     fun buildOidcTokenEndpointUrl(vaultAddr: String, providerName: String): String {
@@ -41,6 +41,7 @@ class ApplicationIdentityService(private val config: ApplicationConfig, engine: 
     val vaultAddr: String = config.property("vault.addr").getString()
     val providerName: String = config.property("vault.oauth.provider").getString()
     val clientName: String = config.property("vault.oauth.client").getString()
+    val scopes = config.property("vault.oauth.scopes").getList()
 
     override fun buildProviderLookup(): OAuthServerSettings.OAuth2ServerSettings = OAuthServerSettings.OAuth2ServerSettings(
         name = "vault",
@@ -49,7 +50,7 @@ class ApplicationIdentityService(private val config: ApplicationConfig, engine: 
         accessTokenUrl = buildOidcTokenEndpointUrl(vaultAddr, providerName),
         clientId = runBlocking { getOidcClientId(clientName) }.getOrThrow(),
         clientSecret = runBlocking { getOidcClientSecret(clientName) }.getOrThrow(),
-        defaultScopes = config.property("scopes").getList(),
+        defaultScopes = scopes,
         onStateCreated = { call, _ ->
             call.request.queryParameters["error"]?.let {
                 val desc = call.request.queryParameters["error_description"].orEmpty()
