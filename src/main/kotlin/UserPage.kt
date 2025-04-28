@@ -2,14 +2,17 @@ package dev.westelh
 
 import dev.westelh.model.OAuthCodes
 import dev.westelh.model.expiresAt
+import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
 import io.ktor.server.auth.OAuthAccessTokenResponse
 import io.ktor.server.auth.authenticate
 import io.ktor.server.auth.authentication
+import io.ktor.server.html.respondHtml
 import io.ktor.server.response.respond
 import io.ktor.server.response.respondRedirect
 import io.ktor.server.routing.RoutingContext
 import io.ktor.server.routing.get
+import io.ktor.server.routing.head
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import io.ktor.server.sessions.SessionStorageMemory
@@ -17,12 +20,15 @@ import io.ktor.server.sessions.Sessions
 import io.ktor.server.sessions.cookie
 import io.ktor.server.sessions.get
 import io.ktor.server.sessions.sessions
+import kotlinx.html.body
+import kotlinx.html.h1
+import kotlinx.html.p
+import kotlinx.html.title
 
 // User page module
 
 fun Application.configureUserPage() {
-    val env = this.environment
-    val service = this.buildApplicationService()
+    val kv = createKvService()
 
     routing {
         route("/user") {
@@ -45,7 +51,16 @@ fun Application.configureUserPage() {
 
             get("/summary") {
                 ensureUserSession { principal ->
-                    call.respond("Your session is valid. Expires at ${principal.expiresAt()}.")
+                    call.respondHtml(HttpStatusCode.OK) {
+                        head {
+                            title = "User Summary"
+                        }
+                        body {
+                            h1 { +"Session" }
+                            p { +"You are authorized as "}
+                            p { +"Current user session is valid until ${principal.expiresAt()}" }
+                        }
+                    }
                 }
             }
         }

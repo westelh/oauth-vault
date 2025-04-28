@@ -17,12 +17,14 @@ fun Application.configureSecurity() {
             json()
         }
     }
-    val service = buildApplicationService()
+
+    val id = createIdService()
+    val provider = createJwkProvider()
 
     install(Authentication) {
         jwt("auth-jwt") {
             with(env.config.config("vault.jwt")) {
-                verifier(service.buildJwkProvider()) {
+                verifier(provider) {
                     withAudience(property("audience").getString())
                     withIssuer(property("issuer").getString())
                     withClaimPresence("google_id")
@@ -38,9 +40,13 @@ fun Application.configureSecurity() {
 
         oauth("auth-oauth-vault") {
             with(env.config.config("vault.oauth")) {
+                val provider = property("provider").getString()
+                val callback = property("callback").getString()
+                val scopes = property("scopes").getList()
+
                 client = http
-                urlProvider = { property("callback").getString() }
-                providerLookup = { service.id.buildProviderLookup() }
+                urlProvider = { callback }
+                providerLookup = { id.buildProviderLookup(provider, scopes) }
             }
         }
 

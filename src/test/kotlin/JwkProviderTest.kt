@@ -12,17 +12,19 @@ import kotlin.test.Test
 class JwkProviderTest {
     @Test
     fun shouldReturnCorrectKey() = testApplication {
+        // keys.json は以下のような内容で、"test-key-1"を含む:
+        // [
+        //   { "kid": "test-key-1", "alg": "RS256", ... }
+        // ]
         val engine = createMockEngineFromResource("/keys.json")
 
         environment {
             config = ApplicationConfig("application.yaml")
-            val vaultConfig = VaultApplicationConfig(config)
-            val provider = JwkProvider(Identity(Vault(vaultConfig, engine)))
+        }
 
-            // keys.json は以下のような内容で、"test-key-1"を含む:
-            // [
-            //   { "kid": "test-key-1", "alg": "RS256", ... }
-            // ]
+        application {
+            val provider = createJwkProvider(engine)
+
 
             val jwk = provider.get("test-key-1")
             jwk.id shouldBe "test-key-1"
@@ -33,9 +35,13 @@ class JwkProviderTest {
     fun shouldThrowGivenNonExistentKey() = testApplication {
         environment {
             config = ApplicationConfig("application.yaml")
-            // keys.jsonは"nonexistent-keys"を含まない。
-            val engine = createMockEngineFromResource("/keys.json")
-            val provider = JwkProvider(Identity(Vault(VaultApplicationConfig(config), engine)))
+        }
+
+        // keys.jsonは"nonexistent-keys"を含まない。
+        val engine = createMockEngineFromResource("/keys.json")
+
+        application {
+            val provider = createJwkProvider(engine)
 
             shouldThrowExactly<SigningKeyNotFoundException> {
                 provider.get("nonexistent-key")
@@ -47,8 +53,10 @@ class JwkProviderTest {
     fun shouldThrowWhenUnauthorized() = testApplication {
         environment {
             config = ApplicationConfig("application.yaml")
+        }
+        application {
             val engine = createMockEngineNotAuthorized()
-            val provider = JwkProvider(Identity(Vault(VaultApplicationConfig(config), engine)))
+            val provider = createJwkProvider(engine)
             shouldThrowExactly<SigningKeyNotFoundException> {
                 provider.get("nonexistentKey")
             }

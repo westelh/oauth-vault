@@ -1,26 +1,19 @@
 package dev.westelh.service
 
-import dev.westelh.VaultApplicationConfig
 import dev.westelh.model.OAuthCodes
 import dev.westelh.model.UserProfile
-import dev.westelh.vault.Vault
 import dev.westelh.vault.api.kv.v2.Kv
 import dev.westelh.vault.api.kv.v2.request.PatchSecretRequest
 import dev.westelh.vault.api.kv.v2.request.PutSecretMetadataRequest
 import dev.westelh.vault.api.kv.v2.request.PutSecretRequest
-import dev.westelh.vault.kv
 import google.api.GoogleRefreshTokenResponse
-import io.ktor.client.engine.HttpClientEngine
-import io.ktor.server.config.*
 import kotlinx.datetime.Clock
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.encodeToJsonElement
 
-interface KvService {
-    val kv: Kv
-
+class KvService(private val kv: Kv) {
     private fun buildUserSecretPath(userId: String): String {
         return "application/oauth/$userId"
     }
@@ -70,9 +63,4 @@ interface KvService {
         val payload = PutSecretMetadataRequest(Json.encodeToJsonElement(profile))
         return kv.writeSecretMetadata(buildUserSecretPath(profile.id), payload)
     }
-}
-
-class ApplicationKvService(val config: ApplicationConfig, engine: HttpClientEngine): KvService {
-    val vault = Vault(VaultApplicationConfig(config), engine)
-    override val kv: Kv = vault.kv(config.property("vault.kv").getString())
 }

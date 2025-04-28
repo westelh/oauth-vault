@@ -1,5 +1,7 @@
 package dev.westelh
 
+import dev.westelh.service.KvService
+import dev.westelh.vault.kv
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
 import io.ktor.server.auth.authenticate
@@ -14,6 +16,17 @@ import io.ktor.server.routing.routing
 import kotlinx.serialization.json.Json
 
 fun Application.configureApi() {
+    val kv = createKvService()
+    val google = createGoogleService()
+
+    suspend fun getAndRefreshUserToken(userId: String): Result<Unit> {
+        return kv.getUserOauthCodes(userId).mapCatching {
+            val tok = it.refreshToken!!
+            val new = google.refreshUserToken(tok).getOrThrow()
+            kv.patchUserOauthCodes(userId, new).getOrThrow()
+        }
+    }
+
     routing {
         authenticate("auth-jwt") {
             route("/api") {
@@ -25,7 +38,7 @@ fun Application.configureApi() {
 
                 get("/user/metadata") {
                     ensureJWT { googleID ->
-                        buildApplicationService().kv.getUserProfile(googleID).onSuccess {
+                        kv.getUserProfile(googleID).onSuccess {
                             call.respond(it)
                         }.onFailure { e ->
                             call.respond(e)
@@ -35,7 +48,7 @@ fun Application.configureApi() {
 
                 get("/token") {
                     ensureJWT { googleID ->
-                        buildApplicationService().kv.getUserOauthCodes(googleID).onSuccess { codes ->
+                        kv.getUserOauthCodes(googleID).onSuccess { codes ->
                             call.respond(Json.encodeToString(codes))
                         }.onFailure { e ->
                             call.respond(e)
@@ -45,7 +58,7 @@ fun Application.configureApi() {
 
                 post("/token/refresh") {
                     ensureJWT { googleID ->
-                        buildApplicationService().getAndRefreshUserToken(googleID).onSuccess {
+                        getAndRefreshUserToken(googleID).onSuccess {
                             call.respond(HttpStatusCode.OK, "Token refreshed")
                         }.onFailure { e ->
                             call.respond(e)
@@ -55,7 +68,7 @@ fun Application.configureApi() {
 
                 post("/token/delete") {
                     ensureJWT { googleID ->
-                        buildApplicationService().kv.deleteUserOauthCodes(googleID).onSuccess {
+                        kv.deleteUserOauthCodes(googleID).onSuccess {
                             call.respond(HttpStatusCode.OK, "Token deleted")
                         }.onFailure { e ->
                             call.respond(e)

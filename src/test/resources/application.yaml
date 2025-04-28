@@ -22,6 +22,11 @@ vault:
     oauth:
         provider: "default"
         client: "dummy"
+        callback: "http://localhost:8080/user/oidc/callback"
+        scopes:
+            - "openid"
+            - "profile"
+            - "email"
 
     jwt:
         issuer: "dummy"
