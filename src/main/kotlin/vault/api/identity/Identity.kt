@@ -7,6 +7,7 @@ import dev.westelh.vault.api.identity.request.PutOidcProviderRequest
 import dev.westelh.vault.api.identity.request.PutOidcScopeRequest
 import dev.westelh.vault.api.identity.response.*
 import io.ktor.client.request.*
+import kotlinx.serialization.json.JsonElement
 
 class Identity(private val vault: Vault) {
     class IdentityPathBuilder {
@@ -128,5 +129,11 @@ class Identity(private val vault: Vault) {
 
     suspend fun readOidcProviderKeys(providerName: String): Result<GetOidcProviderKeysResponse> {
         return vault.getOrVaultError(pathBuilder.buildOidcKeysPath(providerName))
+    }
+
+    suspend fun readOidcUserInfo(providerName: String, accessToken: String): Result<JsonElement> {
+        return vault.getOrVaultError(pathBuilder.buildOidcUserInfoEndpointPath(providerName)) {
+            bearerAuth(accessToken)
+        }
     }
 }

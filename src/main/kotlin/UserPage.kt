@@ -29,6 +29,7 @@ import kotlinx.html.title
 
 fun Application.configureUserPage() {
     val kv = createKvService()
+    val identity = createIdService()
 
     routing {
         route("/user") {
@@ -51,14 +52,17 @@ fun Application.configureUserPage() {
 
             get("/summary") {
                 ensureUserSession { principal ->
+                    val providerName = environment.config.property("vault.oauth.provider").getString()
+                    val googleId = identity.getGoogleIdFromOidcProvider(providerName, principal.accessToken).getOrNull()
+
                     call.respondHtml(HttpStatusCode.OK) {
                         head {
                             title = "User Summary"
                         }
                         body {
                             h1 { +"Session" }
-                            p { +"You are authorized as "}
                             p { +"Current user session is valid until ${principal.expiresAt()}" }
+                            p { +"Google ID: $googleId" }
                         }
                     }
                 }

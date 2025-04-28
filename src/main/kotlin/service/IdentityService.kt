@@ -6,6 +6,7 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.json.jsonObject
 
 class IdentityService(private val identity: Identity) {
 
@@ -40,5 +41,10 @@ class IdentityService(private val identity: Identity) {
             val desc = call.request.queryParameters["error_description"].orEmpty()
             call.application.log.error("Error during oauth: $it - $desc")
         }
+    }
+
+    suspend fun getGoogleIdFromOidcProvider(providerName: String, accessToken: String): Result<String> = runCatching {
+        val json = identity.readOidcUserInfo(providerName, accessToken).getOrThrow()
+        json.jsonObject["google"]!!.jsonObject["id"]!!.toString()
     }
 }

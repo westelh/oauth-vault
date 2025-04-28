@@ -27,6 +27,7 @@ vault:
         scopes:
             - openid
             - meta
+            - google
     jwt:
         issuer: "$VAULT_JWK_ISSUER"
         audience: "$VAULT_JWK_AUDIENCE"
