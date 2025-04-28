@@ -19,6 +19,10 @@ vault:
     token: ""
     kv: "kv"
 
+    oauth:
+        provider: "default"
+        client: "dummy"
+
     jwt:
         issuer: "dummy"
         audience: "dummy"

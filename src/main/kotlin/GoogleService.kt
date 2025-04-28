@@ -4,46 +4,20 @@ import google.api.GoogleRefreshTokenRequest
 import google.api.GoogleRefreshTokenResponse
 import io.ktor.client.*
 import io.ktor.client.call.*
+import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.apache.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.config.ApplicationConfig
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
-
-@Serializable
-data class UserProfile(
-    val id: String,
-    val name: String,
-    @SerialName("given_name")
-    val givenName: String,
-    @SerialName("family_name")
-    val familyName: String,
-    val picture: String,
-    val email: String,
-    @SerialName("verified_email")
-    val verifiedEmail: Boolean
-)
-
-fun buildGoogleClient(): HttpClient = HttpClient(Apache) {
-    install(ContentNegotiation) {
-        json()
-    }
-}
-
-suspend fun getUser(accessToken: String): UserProfile? {
-    val client = buildGoogleClient()
-    val res = client.get("https://www.googleapis.com/userinfo/v2/me") { bearerAuth(accessToken) }
-    return if (res.status.isSuccess()) res.body<UserProfile>() else null
-}
 
 interface GoogleService {
+    val clientEngine: HttpClientEngine
     val clientId: String
     val clientSecret: String
 
-    private fun buildClient(): HttpClient = HttpClient(Apache) {
+    private fun buildClient(): HttpClient = HttpClient(clientEngine) {
         install(ContentNegotiation) {
             json()
         }
@@ -82,7 +56,8 @@ interface GoogleService {
     }
 }
 
-class ApplicationGoogleService(config: ApplicationConfig): GoogleService {
+class ApplicationGoogleService(config: ApplicationConfig, engine: HttpClientEngine): GoogleService {
+    override val clientEngine: HttpClientEngine = engine
     override val clientId: String = config.property("google.oauth.clientId").getString()
     override val clientSecret: String = config.property("google.oauth.clientSecret").getString()
 }

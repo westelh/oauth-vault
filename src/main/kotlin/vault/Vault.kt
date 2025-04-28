@@ -15,7 +15,7 @@ import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 
-class Vault(private val config: Config, engine: HttpClientEngine = Apache.create { }) {
+class Vault(private val config: Config, engine: HttpClientEngine) {
     private val v1 = "${config.address}/v1"
     private val ui = "${config.address}/ui/vault"
 

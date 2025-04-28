@@ -7,6 +7,7 @@ import dev.westelh.vault.api.kv.v2.request.PutSecretMetadataRequest
 import dev.westelh.vault.api.kv.v2.request.PutSecretRequest
 import dev.westelh.vault.kv
 import google.api.GoogleRefreshTokenResponse
+import io.ktor.client.engine.HttpClientEngine
 import io.ktor.server.config.*
 import kotlinx.datetime.Clock
 import kotlinx.serialization.json.Json
@@ -68,7 +69,7 @@ interface KvService {
     }
 }
 
-class ApplicationKvService(val config: ApplicationConfig): KvService {
-    val vault = Vault(VaultApplicationConfig(config))
+class ApplicationKvService(val config: ApplicationConfig, engine: HttpClientEngine): KvService {
+    val vault = Vault(VaultApplicationConfig(config), engine)
     override val kv: Kv = vault.kv(config.property("vault.kv").getString())
 }

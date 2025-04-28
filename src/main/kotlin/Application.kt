@@ -1,8 +1,11 @@
 package dev.westelh
 
 import dev.westelh.vault.Config
+import io.ktor.client.engine.HttpClientEngine
+import io.ktor.client.engine.apache.Apache
 import io.ktor.server.application.*
 import io.ktor.server.config.ApplicationConfig
+import io.ktor.server.engine.ApplicationEngine
 
 fun main(args: Array<String>) {
     io.ktor.server.netty.EngineMain.main(args)
@@ -19,9 +22,9 @@ class VaultApplicationConfig(config: ApplicationConfig): Config {
     val mount = config.property("vault.kv").getString()
 }
 
-fun Application.buildApplicationService(): Service {
-    val identity = ApplicationIdentityService(environment.config)
-    val kv = ApplicationKvService(environment.config)
-    val google = ApplicationGoogleService(environment.config)
+fun Application.buildApplicationService(engine: HttpClientEngine = Apache.create {  }): Service {
+    val identity = ApplicationIdentityService(environment.config, engine)
+    val kv = ApplicationKvService(environment.config, engine)
+    val google = ApplicationGoogleService(environment.config, engine)
     return Service(identity, kv, google)
 }

@@ -20,4 +20,8 @@ class Service(
         kv.writeUserProfile(user).getOrThrow()
         kv.writeUserOauthCodes(user.id, OAuthCodes(init)).getOrThrow()
     }
+
+    fun buildJwkProvider(): JwkProvider {
+        return JwkProvider(id.identity)
+    }
 }
