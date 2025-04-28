@@ -17,6 +17,9 @@ fun main(args: Array<String>) {
 fun Application.module() {
     configureSecurity()
     configureRouting()
+    configureUserPage()
+    configureGoogle()
+    configureApi()
 }
 
 class VaultApplicationConfig(config: ApplicationConfig): Config {

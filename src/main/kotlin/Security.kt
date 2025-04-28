@@ -1,6 +1,5 @@
 package dev.westelh
 
-import dev.westelh.vault.Vault
 import io.ktor.client.*
 import io.ktor.client.engine.apache.*
 import io.ktor.client.plugins.contentnegotiation.*
@@ -18,10 +17,9 @@ fun Application.configureSecurity() {
             json()
         }
     }
+    val service = buildApplicationService()
 
     install(Authentication) {
-        val service = this@configureSecurity.buildApplicationService()
-
         jwt("auth-jwt") {
             with(env.config.config("vault.jwt")) {
                 verifier(service.buildJwkProvider()) {
@@ -42,7 +40,7 @@ fun Application.configureSecurity() {
             with(env.config.config("vault.oauth")) {
                 client = http
                 urlProvider = { property("callback").getString() }
-                providerLookup = {service.id.buildProviderLookup()}
+                providerLookup = { service.id.buildProviderLookup() }
             }
         }
 
