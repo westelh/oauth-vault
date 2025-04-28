@@ -34,7 +34,7 @@ fun Application.configureApi() {
                         kv.getUserProfile(googleID).onSuccess {
                             call.respond(it)
                         }.onFailure { e ->
-                            call.respond(e)
+                            call.respondError(e)
                         }
                     }
                 }
@@ -44,7 +44,7 @@ fun Application.configureApi() {
                         kv.getUserOauthCodes(googleID).onSuccess { codes ->
                             call.respond(Json.encodeToString(codes))
                         }.onFailure { e ->
-                            call.respond(e)
+                            call.respondError(e)
                         }
                     }
                 }
@@ -54,7 +54,7 @@ fun Application.configureApi() {
                         getAndRefreshUserToken(googleID).onSuccess {
                             call.respond(HttpStatusCode.OK, "Token refreshed")
                         }.onFailure { e ->
-                            call.respond(e)
+                            call.respondError(e)
                         }
                     }
                 }
@@ -64,7 +64,7 @@ fun Application.configureApi() {
                         kv.deleteUserOauthCodes(googleID).onSuccess {
                             call.respond(HttpStatusCode.OK, "Token deleted")
                         }.onFailure { e ->
-                            call.respond(e)
+                            call.respondError(e)
                         }
                     }
                 }

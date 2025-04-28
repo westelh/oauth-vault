@@ -36,7 +36,7 @@ fun Application.configureGoogle() {
                     initUser(principal).onSuccess {
                         call.respondRedirect("/")
                     }.onFailure { e ->
-                        call.respond(e)
+                        call.respondError(e)
                     }
                 }
             }

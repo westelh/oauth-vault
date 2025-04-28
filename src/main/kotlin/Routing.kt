@@ -18,7 +18,7 @@ fun Application.configureRouting() {
     }
 }
 
-suspend fun RoutingCall.respond(e: Throwable) {
+suspend fun RoutingCall.respondError(e: Throwable) {
     val path = this.request.path()
 
     when (e) {
