@@ -8,13 +8,11 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class ApplicationTest {
-
     @Test
     fun testRoot() = testApplication {
-        environment {
-            config = ApplicationConfig("application.yaml")
+        application {
+            base()
         }
-
         client.get("/").apply {
             assertEquals(HttpStatusCode.OK, status)
         }
