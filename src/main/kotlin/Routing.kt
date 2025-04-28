@@ -10,12 +10,13 @@ import io.ktor.server.routing.*
 fun Application.configureRouting() {
     routing {
         get("/") {
+            if (call.request.isFromBrowser()) {
+                call.respondRedirect("user/summary")
+            }
             call.respond("Vault OAuth Client")
         }
     }
 }
-
-
 
 suspend fun RoutingCall.respond(e: Throwable) {
     val path = this.request.path()
@@ -29,4 +30,11 @@ suspend fun RoutingCall.respond(e: Throwable) {
             this.respond(HttpStatusCode.InternalServerError, "Internal Server Error")
         }
     }
+}
+
+private fun RoutingRequest.isFromBrowser(): Boolean {
+    val userAgent = this.headers["User-Agent"] ?: return false
+    val browserNames = listOf("Mozilla", "Chrome", "Safari", "Firefox", "Edge", "Opera")
+    val isBrowser = browserNames.any { userAgent.contains(it, ignoreCase = true) }
+    return isBrowser
 }
