@@ -5,28 +5,13 @@ import dev.westelh.vault.api.identity.Identity
 import dev.westelh.vault.api.kv.v2.Kv
 import io.ktor.client.*
 import io.ktor.client.call.*
-import io.ktor.client.engine.*
-import io.ktor.client.engine.apache.*
-import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.serialization.kotlinx.json.*
-import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.json.Json
 
-class Vault(private val config: Config, engine: HttpClientEngine) {
+class Vault(private val config: Config, private val client: HttpClient) {
     private val v1 = "${config.address}/v1"
     private val ui = "${config.address}/ui/vault"
-
-    @OptIn(ExperimentalSerializationApi::class)
-    private val client = HttpClient(engine) {
-        install(ContentNegotiation) {
-            json(Json {
-                allowTrailingComma = true
-            })
-        }
-    }
 
     class VaultError(val response: HttpResponse, val body: ErrorResponse) : Throwable(toString(response, body)) {
         companion object {

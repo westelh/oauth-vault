@@ -1,5 +1,6 @@
 package dev.westelh
 
+import io.ktor.client.HttpClient
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -8,9 +9,9 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.*
 import kotlinx.serialization.json.Json
 
-fun Application.configureApi() {
-    val kv = createKvService()
-    val google = createGoogleService()
+fun Application.configureApi(httpClient: HttpClient = applicationHttpClient) {
+    val kv = createKvService(httpClient)
+    val google = createGoogleService(httpClient)
 
     suspend fun getAndRefreshUserToken(userId: String): Result<Unit> {
         return kv.getUserOauthCodes(userId).mapCatching {

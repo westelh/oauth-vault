@@ -4,6 +4,7 @@ import dev.westelh.model.OAuthCodes
 import dev.westelh.service.ApplicationGoogleService
 import dev.westelh.service.KvService
 import dev.westelh.vault.api.kv.v2.Kv
+import io.ktor.client.HttpClient
 import io.ktor.client.engine.apache.Apache
 import io.ktor.server.application.Application
 import io.ktor.server.auth.OAuthAccessTokenResponse
@@ -14,9 +15,9 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 
-fun Application.configureGoogle() {
-    val google = createGoogleService()
-    val kv = createKvService()
+fun Application.configureGoogle(httpClient: HttpClient = applicationHttpClient) {
+    val google = createGoogleService(httpClient)
+    val kv = createKvService(httpClient)
 
     suspend fun initUser(oauth2: OAuthAccessTokenResponse.OAuth2) = runCatching {
         val user = google.getUser(oauth2.accessToken).getOrThrow()

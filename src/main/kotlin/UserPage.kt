@@ -2,6 +2,7 @@ package dev.westelh
 
 import dev.westelh.model.OAuthCodes
 import dev.westelh.model.expiresAt
+import io.ktor.client.HttpClient
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
 import io.ktor.server.auth.OAuthAccessTokenResponse
@@ -26,10 +27,9 @@ import kotlinx.html.p
 import kotlinx.html.title
 
 // User page module
-
-fun Application.configureUserPage() {
-    val kv = createKvService()
-    val identity = createIdService()
+fun Application.configureUserPage(httpClient: HttpClient = applicationHttpClient) {
+    val kv = createKvService(httpClient)
+    val identity = createIdService(httpClient)
 
     routing {
         route("/user") {
@@ -40,7 +40,7 @@ fun Application.configureUserPage() {
 
             authenticate("auth-oauth-vault") {
                 get("/oidc/login") {
-                    call.respondRedirect("/oidc/callback")
+                    // Redirect to the "authorizationUrl"
                 }
 
                 get("/oidc/callback") {

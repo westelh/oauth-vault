@@ -13,18 +13,11 @@ import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.config.ApplicationConfig
 
 interface GoogleService {
-    val clientEngine: HttpClientEngine
+    val client: HttpClient
     val clientId: String
     val clientSecret: String
 
-    private fun buildClient(): HttpClient = HttpClient(clientEngine) {
-        install(ContentNegotiation) {
-            json()
-        }
-    }
-
     suspend fun getUser(accessToken: String): Result<UserProfile> {
-        val client = buildClient()
         val res = client.get("https://www.googleapis.com/userinfo/v2/me") {
             bearerAuth(accessToken)
         }
@@ -36,7 +29,6 @@ interface GoogleService {
     }
 
     suspend fun refreshUserToken(refreshToken: String): Result<GoogleRefreshTokenResponse> {
-        val client = buildClient()
         val req = buildRefreshRequest(refreshToken)
         val res = client.post("https://oauth2.googleapis.com/token") {
             headers {
@@ -56,8 +48,7 @@ interface GoogleService {
     }
 }
 
-class ApplicationGoogleService(config: ApplicationConfig, engine: HttpClientEngine): GoogleService {
-    override val clientEngine: HttpClientEngine = engine
+class ApplicationGoogleService(config: ApplicationConfig, override val client: HttpClient): GoogleService {
     override val clientId: String = config.property("google.oauth.clientId").getString()
     override val clientSecret: String = config.property("google.oauth.clientSecret").getString()
 }

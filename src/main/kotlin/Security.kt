@@ -10,16 +10,11 @@ import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
 import io.ktor.server.response.*
 
-fun Application.configureSecurity() {
+fun Application.configureSecurity(client: HttpClient = applicationHttpClient) {
     val env = this.environment
-    val http = HttpClient(Apache) {
-        install(ContentNegotiation) {
-            json()
-        }
-    }
 
-    val id = createIdService()
-    val provider = createJwkProvider()
+    val id = createIdService(client)
+    val provider = createJwkProvider(client)
 
     install(Authentication) {
         jwt("auth-jwt") {
@@ -48,7 +43,7 @@ fun Application.configureSecurity() {
                 val callback = property("callback").getString()
                 val scopes = property("scopes").getList()
 
-                client = http
+                this@oauth.client = client
                 urlProvider = { callback }
                 providerLookup = { id.buildProviderLookup(providerName, clientName, scopes) }
             }
@@ -61,7 +56,7 @@ fun Application.configureSecurity() {
                 val clientSecret = property("clientSecret").getString()
 
                 urlProvider = { callback }
-                client = http
+                this@oauth.client = client
                 providerLookup = {
                     OAuthServerSettings.OAuth2ServerSettings(
                         name = "google",
