@@ -27,7 +27,6 @@ fun Application.module() {
 class VaultApplicationConfig(config: ApplicationConfig): Config {
     override val address: String = config.property("vault.addr").getString()
     override val token: String = config.propertyOrNull("vault.token")?.getString().orEmpty()
-    val mount = config.property("vault.kv").getString()
 }
 
 private fun Application.createVaultEngine(engine: HttpClientEngine = Apache.create {  }): Vault {

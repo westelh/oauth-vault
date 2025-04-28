@@ -24,9 +24,12 @@ fun Application.configureSecurity() {
     install(Authentication) {
         jwt("auth-jwt") {
             with(env.config.config("vault.jwt")) {
+                val audience = property("audience").getString()
+                val issuer = property("issuer").getString()
+
                 verifier(provider) {
-                    withAudience(property("audience").getString())
-                    withIssuer(property("issuer").getString())
+                    withAudience(audience)
+                    withIssuer(issuer)
                     withClaimPresence("google_id")
                 }
                 validate { credential ->
@@ -52,7 +55,11 @@ fun Application.configureSecurity() {
 
         oauth("auth-oauth-google") {
             with(env.config.config("google.oauth")) {
-                urlProvider = { property("callback").getString() }
+                val callback = property("callback").getString()
+                val clientId = property("clientId").getString()
+                val clientSecret = property("clientSecret").getString()
+
+                urlProvider = { callback }
                 client = http
                 providerLookup = {
                     OAuthServerSettings.OAuth2ServerSettings(
@@ -60,8 +67,8 @@ fun Application.configureSecurity() {
                         authorizeUrl = "https://accounts.google.com/o/oauth2/auth",
                         accessTokenUrl = "https://accounts.google.com/o/oauth2/token",
                         requestMethod = HttpMethod.Post,
-                        clientId = property("clientId").getString(),
-                        clientSecret = property("clientSecret").getString(),
+                        clientId = clientId,
+                        clientSecret = clientSecret,
                         defaultScopes = listOf(
                             "https://www.googleapis.com/auth/userinfo.profile",
                             "https://www.googleapis.com/auth/userinfo.email",
