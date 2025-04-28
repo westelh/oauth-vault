@@ -28,7 +28,6 @@ import kotlinx.html.title
 
 // User page module
 fun Application.configureUserPage(httpClient: HttpClient = applicationHttpClient) {
-    val kv = createKvService(httpClient)
     val identity = createIdService(httpClient)
 
     routing {
