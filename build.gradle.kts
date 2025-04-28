@@ -31,6 +31,7 @@ dependencies {
     implementation(libs.kotlinx.datetime)
     implementation(libs.ktor.server.config.yaml)
     implementation(libs.ktor.serialization.kotlinx.json)
+    implementation(libs.ktor.server.content.negotiation)
     implementation(libs.ktor.client.content.negotiation)
     implementation(libs.ktor.server.html.builder)
     implementation(libs.ktor.client.auth)
