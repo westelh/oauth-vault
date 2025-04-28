@@ -13,6 +13,7 @@ google:
     oauth:
         clientId: "dummy"
         clientSecret: "dummy"
+        callback: "http://localhost:8080/google/callback"
 
 vault:
     addr: "https://vault.example.com"
