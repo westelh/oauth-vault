@@ -39,7 +39,7 @@ fun Application.configureUserPage() {
                 get("/oidc/callback") {
                     val principal: OAuthAccessTokenResponse.OAuth2= call.authentication.principal()!!
                     call.sessions.set("oauth_principal", OAuthCodes(principal))
-                    call.respondRedirect("/")
+                    call.respondRedirect("/user/summary")
                 }
             }
 
