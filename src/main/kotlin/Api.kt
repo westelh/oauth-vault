@@ -1,17 +1,40 @@
 package dev.westelh
 
-import io.ktor.client.HttpClient
+import io.ktor.client.*
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
-import io.ktor.server.response.respond
+import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.serialization.json.Json
 
 fun Application.configureApi(httpClient: HttpClient = applicationHttpClient) {
+    val env = this.environment
     val kv = createKvService(httpClient)
     val google = createGoogleService(httpClient)
+
+    plugin(Authentication).configure {
+        jwt("auth-jwt") {
+            with(env.config.config("vault.jwt")) {
+                val audience = property("audience").getString()
+                val issuer = property("issuer").getString()
+                val provider = this@configureApi.createJwkProvider(httpClient)
+
+                verifier(provider) {
+                    withAudience(audience)
+                    withIssuer(issuer)
+                    withClaimPresence("google_id")
+                }
+                validate { credential ->
+                    JWTPrincipal(credential.payload)
+                }
+                challenge { _, _ ->
+                    call.respond(HttpStatusCode.Unauthorized, "Token is not valid or has expired")
+                }
+            }
+        }
+    }
 
     suspend fun getAndRefreshUserToken(userId: String): Result<Unit> {
         return kv.getUserOauthCodes(userId).mapCatching {

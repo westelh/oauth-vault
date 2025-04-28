@@ -5,9 +5,12 @@ import dev.westelh.model.expiresAt
 import io.ktor.client.HttpClient
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
+import io.ktor.server.application.plugin
+import io.ktor.server.auth.Authentication
 import io.ktor.server.auth.OAuthAccessTokenResponse
 import io.ktor.server.auth.authenticate
 import io.ktor.server.auth.authentication
+import io.ktor.server.auth.oauth
 import io.ktor.server.html.respondHtml
 import io.ktor.server.response.respond
 import io.ktor.server.response.respondRedirect
@@ -29,6 +32,22 @@ import kotlinx.html.title
 // User page module
 fun Application.configureUserPage(httpClient: HttpClient = applicationHttpClient) {
     val identity = createIdService(httpClient)
+    val env = this.environment
+
+    plugin(Authentication).configure {
+        oauth("auth-oauth-vault") {
+            with(env.config.config("vault.oauth")) {
+                val providerName = property("provider").getString()
+                val clientName = property("client").getString()
+                val callback = property("callback").getString()
+                val scopes = property("scopes").getList()
+
+                client = httpClient
+                urlProvider = { callback }
+                providerLookup = { identity.buildProviderLookup(providerName, clientName, scopes) }
+            }
+        }
+    }
 
     routing {
         route("/user") {

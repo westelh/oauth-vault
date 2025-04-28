@@ -21,17 +21,16 @@ fun main(args: Array<String>) {
 }
 
 fun Application.base() {
-    configureSecurity()
-    configureRouting()
+    configureBase()
 }
 
-fun Application.ui() {
-    configureUserPage()
+fun Application.ui(client: HttpClient = applicationHttpClient) {
+    configureUserPage(client)
 }
 
-fun Application.api() {
-    configureApi()
-    configureGoogle()
+fun Application.api(client: HttpClient = applicationHttpClient) {
+    configureApi(client)
+    configureGoogle(client)
 }
 
 @OptIn(ExperimentalSerializationApi::class)
