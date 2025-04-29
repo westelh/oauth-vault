@@ -13,12 +13,16 @@ class Vault(private val config: Config, private val client: HttpClient) {
     private val v1 = "${config.address}/v1"
     private val ui = "${config.address}/ui/vault"
 
-    class VaultError(val response: HttpResponse, val body: ErrorResponse) : Throwable(toString(response, body)) {
+    class VaultError(val response: HttpResponse, val body: ErrorResponse?) : Throwable(toString(response, body)) {
         companion object {
-            private fun toString(response: HttpResponse, body: ErrorResponse): String {
+            private fun toString(response: HttpResponse, body: ErrorResponse?): String {
                 val statusCode = response.status
                 val at = response.request.url
-                return "$statusCode at $at - $body"
+                return if (body == null) {
+                   "${statusCode.description} at $at"
+                } else {
+                    "${statusCode.description} at $at. Description: ${body.errors.joinToString(", ", "[", "]")}"
+                }
             }
         }
     }
@@ -118,7 +122,8 @@ class Vault(private val config: Config, private val client: HttpClient) {
         return if (response.status == successStatus) {
             transform(response)
         } else {
-            throw VaultError(response, response.body())
+            if (response.contentType() == null) throw VaultError(response, null)
+            else throw VaultError(response, response.body())
         }
     }
 
