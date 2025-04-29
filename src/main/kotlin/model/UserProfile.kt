@@ -14,5 +14,5 @@ data class UserProfile(
     val picture: String,
     val email: String,
     @SerialName("verified_email")
-    val verifiedEmail: Int
+    val verifiedEmail: Boolean
 )
