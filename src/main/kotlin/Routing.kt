@@ -15,8 +15,9 @@ fun Application.configureBase() {
         get("/") {
             if (call.request.isFromBrowser()) {
                 call.respondRedirect("user/summary")
+            } else {
+                call.respond("Vault OAuth Client")
             }
-            call.respond("Vault OAuth Client")
         }
     }
 }
