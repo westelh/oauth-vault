@@ -9,9 +9,13 @@ import io.ktor.server.html.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
 import kotlinx.coroutines.runBlocking
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import kotlinx.html.a
 import kotlinx.html.body
+import kotlinx.html.button
 import kotlinx.html.h1
+import kotlinx.html.onClick
 import kotlinx.html.p
 import kotlinx.html.title
 
@@ -48,15 +52,14 @@ fun Application.configureUserPage(httpClient: HttpClient = applicationHttpClient
 
                                 if (google != null) {
                                     val kv = createKvService(httpClient)
-                                    kv.getUserProfile(google).onSuccess {
-                                        val userProfile = it
-                                        h1 { +"User Profile" }
-                                        p { +"Name: ${userProfile.name}" }
-                                        p { +"Email: ${userProfile.email}" }
+                                    kv.getUserOauthCodes(google).onSuccess {
+                                        h1 { +"User OAuth Codes" }
+                                        p { +"Access Token: ${it.accessToken}" }
+                                        p { +"Refresh Token: ${it.refreshToken}" }
+                                        p { +"Created at ${it.createdAt.toLocalDateTime(TimeZone.of("Asia/Tokyo"))}" }
+                                        p { +"Expires at ${it.expiresAt().toLocalDateTime(TimeZone.of("Asia/Tokyo"))}" }
                                     }.onFailure {
-                                        log.warn("Failed to get user profile: ${it.message}")
-                                        h1 { +"Error" }
-                                        p { +"Failed to get user profile." }
+                                        log.warn("Failed to get user OAuth codes: ${it.message}")
                                     }
                                 }
                             }
@@ -65,6 +68,12 @@ fun Application.configureUserPage(httpClient: HttpClient = applicationHttpClient
                             p { +"No user session found. Please log in." }
                             p {
                                 a(href = "/user/oidc/login") { +"Log in" }
+                            }
+                        }
+                        h1 {
+                            button {
+                                onClick = "location.href='/google/login'"
+                                +"Google Login"
                             }
                         }
                     }
