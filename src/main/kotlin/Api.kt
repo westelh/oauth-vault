@@ -11,8 +11,6 @@ import kotlinx.serialization.json.Json
 
 fun Application.api(httpClient: HttpClient = applicationHttpClient) {
     val env = this.environment
-    val kv = createKvService(httpClient)
-    val google = createGoogleService(httpClient)
 
     plugin(Authentication).configure {
         jwt("auth-jwt") {
@@ -37,6 +35,8 @@ fun Application.api(httpClient: HttpClient = applicationHttpClient) {
     }
 
     suspend fun getAndRefreshUserToken(userId: String): Result<Unit> {
+        val kv = createKvService(httpClient)
+        val google = createGoogleService(httpClient)
         return kv.getUserOauthCodes(userId).mapCatching {
             val tok = it.refreshToken!!
             val new = google.refreshUserToken(tok).getOrThrow()
@@ -55,6 +55,7 @@ fun Application.api(httpClient: HttpClient = applicationHttpClient) {
 
                 get("/user/metadata") {
                     ensureJWT { googleID ->
+                        val kv = createKvService(httpClient)
                         kv.getUserProfile(googleID).onSuccess {
                             call.respond(it)
                         }.onFailure { e ->
@@ -65,6 +66,7 @@ fun Application.api(httpClient: HttpClient = applicationHttpClient) {
 
                 get("/token") {
                     ensureJWT { googleID ->
+                        val kv = createKvService(httpClient)
                         kv.getUserOauthCodes(googleID).onSuccess { codes ->
                             call.respond(Json.encodeToString(codes))
                         }.onFailure { e ->
@@ -85,6 +87,7 @@ fun Application.api(httpClient: HttpClient = applicationHttpClient) {
 
                 post("/token/delete") {
                     ensureJWT { googleID ->
+                        val kv = createKvService(httpClient)
                         kv.deleteUserOauthCodes(googleID).onFailure { e ->
                             log.warn(makeLogMessage(this.call.request, e))
                         }
