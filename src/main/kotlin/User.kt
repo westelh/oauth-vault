@@ -20,7 +20,7 @@ import kotlinx.html.p
 import kotlinx.html.title
 
 // User page module
-fun Application.user(httpClient: HttpClient = applicationHttpClient) {
+fun Application.configureUserPage(httpClient: HttpClient) {
     install(Sessions) {
         cookie<OAuthCodes>("oauth_principal", SessionStorageMemory())
     }

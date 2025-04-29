@@ -9,7 +9,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.serialization.json.Json
 
-fun Application.api(httpClient: HttpClient = applicationHttpClient) {
+fun Application.configureApi(httpClient: HttpClient) {
     val env = this.environment
 
     plugin(Authentication).configure {
@@ -17,7 +17,7 @@ fun Application.api(httpClient: HttpClient = applicationHttpClient) {
             with(env.config.config("vault.jwt")) {
                 val audience = property("audience").getString()
                 val issuer = property("issuer").getString()
-                val provider = this@api.createJwkProvider(httpClient)
+                val provider = this@configureApi.createJwkProvider(httpClient)
 
                 verifier(provider) {
                     withAudience(audience)

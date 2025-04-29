@@ -15,13 +15,13 @@ import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import io.ktor.server.sessions.sessions
 
-fun Application.vault(httpClient: HttpClient = applicationHttpClient) {
+fun Application.configureVaultOIDC(httpClient: HttpClient) {
 
     plugin(Authentication).configure {
         oauth("auth-oauth-vault") {
-            val identity = this@vault.createIdService(httpClient)
+            val identity = this@configureVaultOIDC.createIdService(httpClient)
 
-            with(this@vault.environment.config.config("vault.oauth")) {
+            with(this@configureVaultOIDC.environment.config.config("vault.oauth")) {
                 val providerName = property("provider").getString()
                 val clientName = property("client").getString()
                 val callback = property("callback").getString()

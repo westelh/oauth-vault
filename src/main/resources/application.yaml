@@ -1,9 +1,9 @@
 ktor:
     application:
         modules:
-            - dev.westelh.ApplicationKt.main
-            - dev.westelh.ApplicationKt.google
-            - dev.westelh.ApplicationKt.vault
+            - dev.westelh.ApplicationKt.root
+            - dev.westelh.ApplicationKt.oauth
+            - dev.westelh.ApplicationKt.oidc
             - dev.westelh.ApplicationKt.api
             - dev.westelh.ApplicationKt.user
     development: true

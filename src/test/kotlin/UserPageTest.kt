@@ -40,7 +40,7 @@ class UserPageTest {
             }
         }
         application {
-            user(testHttp)
+            configureUserPage(testHttp)
         }
         routing {
             get("/test-login") {

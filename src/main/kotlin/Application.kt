@@ -7,10 +7,10 @@ import dev.westelh.vault.Config
 import dev.westelh.vault.Vault
 import dev.westelh.vault.identity
 import dev.westelh.vault.kv
-import io.ktor.client.HttpClient
+import io.ktor.client.*
 import io.ktor.client.engine.apache.*
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.serialization.kotlinx.json.json
+import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.config.*
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -18,6 +18,26 @@ import kotlinx.serialization.json.Json
 
 fun main(args: Array<String>) {
     io.ktor.server.netty.EngineMain.main(args)
+}
+
+fun Application.root() {
+    configureRoot()
+}
+
+fun Application.api(httpClient: HttpClient = applicationHttpClient) {
+    configureApi(httpClient)
+}
+
+fun Application.user(httpClient: HttpClient = applicationHttpClient) {
+    configureUserPage(httpClient)
+}
+
+fun Application.oidc(httpClient: HttpClient = applicationHttpClient) {
+    configureVaultOIDC(httpClient)
+}
+
+fun Application.oauth(httpClient: HttpClient = applicationHttpClient) {
+    configureGoogleOAuth(httpClient)
 }
 
 @OptIn(ExperimentalSerializationApi::class)

@@ -8,7 +8,7 @@ import io.ktor.server.auth.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
-fun Application.google(httpClient: HttpClient = applicationHttpClient) {
+fun Application.configureGoogleOAuth(httpClient: HttpClient) {
     val env = this.environment
     val google = createGoogleService(httpClient)
     val kv = createKvService(httpClient)
