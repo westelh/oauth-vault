@@ -2,7 +2,6 @@ package dev.westelh
 
 import dev.westelh.model.GoogleIdentityData
 import dev.westelh.model.OAuthCodes
-import dev.westelh.vault.api.kv.v2.response.GetSecretMetadataResponse
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.ktor.client.plugins.cookies.*
@@ -41,7 +40,7 @@ class UserPageTest {
             }
         }
         application {
-            configureUserPage(testHttp)
+            user(testHttp)
         }
         routing {
             get("/test-login") {

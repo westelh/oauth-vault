@@ -1,9 +1,11 @@
 ktor:
     application:
         modules:
-            - dev.westelh.ApplicationKt.base
-            - dev.westelh.ApplicationKt.ui
+            - dev.westelh.ApplicationKt.main
+            - dev.westelh.ApplicationKt.google
+            - dev.westelh.ApplicationKt.vault
             - dev.westelh.ApplicationKt.api
+            - dev.westelh.ApplicationKt.user
     development: true
     deployment:
         host: localhost

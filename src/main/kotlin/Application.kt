@@ -20,20 +20,6 @@ fun main(args: Array<String>) {
     io.ktor.server.netty.EngineMain.main(args)
 }
 
-fun Application.base() {
-    configureBase()
-}
-
-fun Application.ui(client: HttpClient = applicationHttpClient) {
-    configureUserPage(client)
-    configureVaultOidc(client)
-}
-
-fun Application.api(client: HttpClient = applicationHttpClient) {
-    configureApi(client)
-    configureGoogle(client)
-}
-
 @OptIn(ExperimentalSerializationApi::class)
 val applicationHttpClient: HttpClient by lazy {
     HttpClient(Apache) {

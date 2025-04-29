@@ -9,7 +9,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.serialization.json.Json
 
-fun Application.configureApi(httpClient: HttpClient = applicationHttpClient) {
+fun Application.api(httpClient: HttpClient = applicationHttpClient) {
     val env = this.environment
     val kv = createKvService(httpClient)
     val google = createGoogleService(httpClient)
@@ -19,7 +19,7 @@ fun Application.configureApi(httpClient: HttpClient = applicationHttpClient) {
             with(env.config.config("vault.jwt")) {
                 val audience = property("audience").getString()
                 val issuer = property("issuer").getString()
-                val provider = this@configureApi.createJwkProvider(httpClient)
+                val provider = this@api.createJwkProvider(httpClient)
 
                 verifier(provider) {
                     withAudience(audience)
