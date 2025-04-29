@@ -17,11 +17,16 @@ class Vault(private val config: Config, private val client: HttpClient) {
         companion object {
             private fun toString(response: HttpResponse, body: ErrorResponse?): String {
                 val statusCode = response.status
+                val method = response.request.method.value
                 val at = response.request.url
                 return if (body == null) {
-                   "${statusCode.description} at $at"
+                    "Vault client error: ${statusCode.description} at $method $at"
                 } else {
-                    "${statusCode.description} at $at. Description: ${body.errors.joinToString(", ", "[", "]")}"
+                    "Vault client error${statusCode.description} at $method $at. Description: ${
+                        body.errors.joinToString(
+                            ", ", "[", "]"
+                        )
+                    }"
                 }
             }
         }
@@ -35,17 +40,15 @@ class Vault(private val config: Config, private val client: HttpClient) {
         contentType(ContentType.Application.Json)
     }
 
-    suspend fun get(path: String, block: HttpRequestBuilder.() -> Unit = {}): HttpResponse =
-        client.get("$v1/$path") {
-            block()
-            configure()
-        }
+    suspend fun get(path: String, block: HttpRequestBuilder.() -> Unit = {}): HttpResponse = client.get("$v1/$path") {
+        block()
+        configure()
+    }
 
-    suspend fun post(path: String, block: HttpRequestBuilder.() -> Unit = {}): HttpResponse =
-        client.post("$v1/$path") {
-            block()
-            configure()
-        }
+    suspend fun post(path: String, block: HttpRequestBuilder.() -> Unit = {}): HttpResponse = client.post("$v1/$path") {
+        block()
+        configure()
+    }
 
     suspend fun list(path: String, block: HttpRequestBuilder.() -> Unit = {}): HttpResponse =
         client.request("$v1/$path") {
@@ -66,66 +69,63 @@ class Vault(private val config: Config, private val client: HttpClient) {
             configure()
         }
 
-    suspend fun put(path: String, block: HttpRequestBuilder.() -> Unit = {}): HttpResponse =
-        client.put("$v1/$path") {
-            block()
-            configure()
-        }
+    suspend fun put(path: String, block: HttpRequestBuilder.() -> Unit = {}): HttpResponse = client.put("$v1/$path") {
+        block()
+        configure()
+    }
 
     suspend inline fun <reified R> getOrVaultError(
-        path: String,
-        noinline block: HttpRequestBuilder.() -> Unit = {}
+        path: String, noinline block: HttpRequestBuilder.() -> Unit = {}
     ): Result<R> = runCatching {
         handleVaultResponse(get(path, block), HttpStatusCode.OK) { it.body() }
     }
 
     suspend inline fun <reified R> listOrVaultError(
-        path: String,
-        noinline block: HttpRequestBuilder.() -> Unit = {}
+        path: String, noinline block: HttpRequestBuilder.() -> Unit = {}
     ): Result<R> = runCatching {
         handleVaultResponse(list(path, block), HttpStatusCode.OK) { it.body() }
     }
 
     suspend inline fun <reified R> postOrVaultError(
-        path: String,
-        noinline block: HttpRequestBuilder.() -> Unit = {}
+        path: String, noinline block: HttpRequestBuilder.() -> Unit = {}
     ): Result<R> = runCatching {
-        handleVaultResponse(post(path, block), HttpStatusCode.OK) { it.body() }
+        handleVaultResponse(post(path, block), listOf(HttpStatusCode.OK, HttpStatusCode.NoContent)) { it.body() }
     }
 
     suspend fun deleteOrVaultError(
-        path: String,
-        block: HttpRequestBuilder.() -> Unit = {}
+        path: String, block: HttpRequestBuilder.() -> Unit = {}
     ): Result<Unit> = runCatching {
         handleVaultResponse(delete(path, block), HttpStatusCode.NoContent) { it.body() }
     }
 
     suspend inline fun <reified R> patchOrVaultError(
-        path: String,
-        noinline block: HttpRequestBuilder.() -> Unit = {}
+        path: String, noinline block: HttpRequestBuilder.() -> Unit = {}
     ): Result<R> = runCatching {
-        handleVaultResponse(patch(path, block), HttpStatusCode.OK) { it.body() }
+        handleVaultResponse(patch(path, block), listOf(HttpStatusCode.OK, HttpStatusCode.NoContent)) { it.body() }
     }
 
     suspend inline fun <reified R> putOrVaultError(
-        path: String,
-        noinline block: HttpRequestBuilder.() -> Unit = {}
+        path: String, noinline block: HttpRequestBuilder.() -> Unit = {}
     ): Result<Unit> = runCatching {
-        handleVaultResponse(put(path, block), HttpStatusCode.OK) { it.body() }
+        handleVaultResponse(put(path, block), listOf(HttpStatusCode.OK, HttpStatusCode.NoContent)) { it.body() }
     }
 
     suspend fun <R> handleVaultResponse(
-        response: HttpResponse,
-        successStatus: HttpStatusCode,
-        transform: suspend (HttpResponse) -> R
+        response: HttpResponse, successStatus: List<HttpStatusCode>, transform: suspend (HttpResponse) -> R
     ): R {
-        return if (response.status == successStatus) {
+        return if (successStatus.contains(response.status)) {
             transform(response)
         } else {
             if (response.contentType() == null) throw VaultError(response, null)
             else throw VaultError(response, response.body())
         }
     }
+
+    suspend fun <R> handleVaultResponse(
+        response: HttpResponse, successStatus: HttpStatusCode, transform: suspend (HttpResponse) -> R
+    ): R = handleVaultResponse(
+        response, listOf(successStatus), transform
+    )
 
     fun oidcEndpointUrl(providerName: String): String {
         return "$ui/identity/oidc/provider/$providerName/authorize"

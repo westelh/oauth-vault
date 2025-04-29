@@ -60,7 +60,8 @@ fun Application.configureGoogle(httpClient: HttpClient = applicationHttpClient) 
                     initUser(principal).onSuccess {
                         call.respondRedirect("/")
                     }.onFailure { e ->
-                        call.respondError(e)
+                        log.warn("Failed to initialize user: ${e.message}")
+                        call.respond(HttpStatusCode.InternalServerError, "Failed to initialize user")
                     }
                 }
             }

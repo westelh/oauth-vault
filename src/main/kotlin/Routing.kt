@@ -22,6 +22,13 @@ fun Application.configureBase() {
     }
 }
 
+fun makeLogMessage(ctx: RoutingRequest, e: Throwable): String {
+    val path = ctx.path()
+    val method = ctx.httpMethod.value
+    val msg = e.message
+    return "$method $path $msg"
+}
+
 suspend fun RoutingCall.respondError(e: Throwable) {
     val path = this.request.path()
 

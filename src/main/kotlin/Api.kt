@@ -58,7 +58,7 @@ fun Application.configureApi(httpClient: HttpClient = applicationHttpClient) {
                         kv.getUserProfile(googleID).onSuccess {
                             call.respond(it)
                         }.onFailure { e ->
-                            call.respondError(e)
+                            log.warn(makeLogMessage(this.call.request, e))
                         }
                     }
                 }
@@ -68,7 +68,7 @@ fun Application.configureApi(httpClient: HttpClient = applicationHttpClient) {
                         kv.getUserOauthCodes(googleID).onSuccess { codes ->
                             call.respond(Json.encodeToString(codes))
                         }.onFailure { e ->
-                            call.respondError(e)
+                            log.warn(makeLogMessage(this.call.request, e))
                         }
                     }
                 }
@@ -78,18 +78,17 @@ fun Application.configureApi(httpClient: HttpClient = applicationHttpClient) {
                         getAndRefreshUserToken(googleID).onSuccess {
                             call.respond(HttpStatusCode.OK, "Token refreshed")
                         }.onFailure { e ->
-                            call.respondError(e)
+                            log.warn(makeLogMessage(this.call.request, e))
                         }
                     }
                 }
 
                 post("/token/delete") {
                     ensureJWT { googleID ->
-                        kv.deleteUserOauthCodes(googleID).onSuccess {
-                            call.respond(HttpStatusCode.OK, "Token deleted")
-                        }.onFailure { e ->
-                            call.respondError(e)
+                        kv.deleteUserOauthCodes(googleID).onFailure { e ->
+                            log.warn(makeLogMessage(this.call.request, e))
                         }
+                        call.respond("Token deleted (if it existed)")
                     }
                 }
             }
