@@ -15,7 +15,7 @@ import kotlinx.serialization.json.encodeToJsonElement
 
 class KvService(private val kv: Kv) {
     private fun buildUserSecretPath(userId: String): String {
-        return "application/oauth/$userId"
+        return "applications/oauth/$userId"
     }
 
     private fun buildPatchRequest(from: GoogleRefreshTokenResponse): PatchSecretRequest {
