@@ -1,6 +1,8 @@
 package dev.westelh
 
+import dev.westelh.model.GoogleIdentityData
 import dev.westelh.model.OAuthCodes
+import dev.westelh.vault.api.kv.v2.response.GetSecretMetadataResponse
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.ktor.client.plugins.cookies.*
@@ -20,19 +22,15 @@ import kotlin.test.Test
 class UserPageTest {
     @Serializable
     data class TestUserInfo(
-        val google: Google
-    ) {
-        @Serializable
-        data class Google(
-            val id: String
-        )
-    }
+        val google: GoogleIdentityData
+    )
 
     @Test
     fun testLogin() = testApplication {
         environment {
             config = MapApplicationConfig(
                 "vault.addr" to "http://vault.example.com",
+                "vault.kv" to "kv",
                 "vault.oauth.provider" to "default",
             )
         }
@@ -65,7 +63,7 @@ class UserPageTest {
                 routing {
                     get("/v1/identity/oidc/provider/default/userinfo") {
                         call.request.headers["Authorization"].shouldBe("Bearer 123456")
-                        call.respond(TestUserInfo(TestUserInfo.Google("xyz123")))
+                        call.respond(TestUserInfo(GoogleIdentityData("xyz123")))
                     }
                 }
             }

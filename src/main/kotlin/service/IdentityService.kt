@@ -1,12 +1,16 @@
 package dev.westelh.service
 
+import dev.westelh.model.GoogleIdentityData
 import dev.westelh.model.OpenIdProviderMetadata
 import dev.westelh.vault.api.identity.Identity
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 
 class IdentityService(private val identity: Identity) {
 
@@ -43,8 +47,9 @@ class IdentityService(private val identity: Identity) {
         }
     }
 
-    suspend fun getGoogleIdFromOidcProvider(providerName: String, accessToken: String): Result<String> = runCatching {
+    suspend fun getGoogleIdFromOidcProvider(providerName: String, accessToken: String): Result<GoogleIdentityData> = runCatching {
         val json = identity.readOidcUserInfo(providerName, accessToken).getOrThrow()
-        json.jsonObject["google"]!!.jsonObject["id"]!!.toString()
+        val go = json.jsonObject["google"]!!
+        return@runCatching Json.decodeFromJsonElement<GoogleIdentityData>(go)
     }
 }
