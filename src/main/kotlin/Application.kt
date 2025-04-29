@@ -26,6 +26,7 @@ fun Application.base() {
 
 fun Application.ui(client: HttpClient = applicationHttpClient) {
     configureUserPage(client)
+    configureVaultOidc(client)
 }
 
 fun Application.api(client: HttpClient = applicationHttpClient) {
