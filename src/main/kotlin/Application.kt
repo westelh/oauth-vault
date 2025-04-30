@@ -83,6 +83,3 @@ fun Application.createGoogleService(client: HttpClient): ApplicationGoogleServic
     return ApplicationGoogleService(environment.config, client)
 }
 
-fun Application.createJwkProvider(client: HttpClient): JwkProvider {
-    return JwkProvider(createVaultEngine(client).identity())
-}

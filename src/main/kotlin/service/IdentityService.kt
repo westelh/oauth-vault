@@ -12,7 +12,7 @@ import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 
-class IdentityService(private val identity: Identity) {
+class IdentityService(val identity: Identity) {
 
     suspend fun getOidcClientId(name: String): Result<String> {
         return identity.readOidcClient(name).map { it.data.clientId }

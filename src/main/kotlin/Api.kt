@@ -1,5 +1,9 @@
 package dev.westelh
 
+import com.auth0.jwk.Jwk
+import com.auth0.jwk.JwkProvider
+import com.auth0.jwk.SigningKeyNotFoundException
+import dev.westelh.vault.api.identity.Identity
 import io.ktor.client.*
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -7,18 +11,22 @@ import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.decodeFromJsonElement
+import kotlinx.serialization.json.encodeToJsonElement
 
 fun Application.configureApi(httpClient: HttpClient) {
-    val env = this.environment
-
     tryInstallAuthentication()
     plugin(Authentication).configure {
+        val service = this@configureApi.createIdService(httpClient)
+
         jwt("auth-jwt") {
-            with(env.config.config("vault.jwt")) {
+            with(this@configureApi.environment.config.config("vault.jwt")) {
                 val audience = property("audience").getString()
                 val issuer = property("issuer").getString()
-                val provider = this@configureApi.createJwkProvider(httpClient)
+                val provider = VaultIdentityTokenProvider(service.identity)
 
                 verifier(provider) {
                     withAudience(audience)
@@ -111,6 +119,24 @@ private suspend fun RoutingContext.ensureJWT(block: suspend RoutingContext.(goog
                 respond(HttpStatusCode.Unauthorized, "google_id is required")
             } else {
                 block(googleID.asString())
+            }
+        }
+    }
+}
+
+class VaultIdentityTokenProvider(val identity: Identity): JwkProvider {
+    companion object {
+        fun decodeJwk(json: JsonElement): Jwk = Jwk.fromValues(Json.decodeFromJsonElement<Map<String, String>>(json))
+    }
+
+    override fun get(keyId: String): Jwk {
+        return runBlocking {
+            identity.getIdentityTokenIssuerKeys().mapCatching {
+                it.keys.find { it.keyId == keyId }.let { found ->
+                    decodeJwk(Json.encodeToJsonElement(found))
+                }
+            }.getOrElse {
+                throw SigningKeyNotFoundException("Signing key for id $keyId not found", it)
             }
         }
     }

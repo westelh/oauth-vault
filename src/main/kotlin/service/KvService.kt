@@ -13,7 +13,7 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.encodeToJsonElement
 
-class KvService(private val kv: Kv) {
+class KvService(val kv: Kv) {
     private fun buildUserSecretPath(userId: String): String {
         return "applications/oauth/$userId"
     }
