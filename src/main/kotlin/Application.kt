@@ -12,12 +12,21 @@ import io.ktor.client.engine.apache.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
+import io.ktor.server.auth.Authentication
 import io.ktor.server.config.*
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 
 fun main(args: Array<String>) {
     io.ktor.server.netty.EngineMain.main(args)
+}
+
+fun Application.tryInstallAuthentication() {
+    try {
+        install(Authentication)
+    } catch (dup: DuplicatePluginException) {
+        // Ignore duplicate plugin exception
+    }
 }
 
 fun Application.root() {

@@ -12,6 +12,7 @@ import kotlinx.serialization.json.Json
 fun Application.configureApi(httpClient: HttpClient) {
     val env = this.environment
 
+    tryInstallAuthentication()
     plugin(Authentication).configure {
         jwt("auth-jwt") {
             with(env.config.config("vault.jwt")) {

@@ -13,6 +13,7 @@ fun Application.configureGoogleOAuth(httpClient: HttpClient) {
     val google = createGoogleService(httpClient)
     val kv = createKvService(httpClient)
 
+    tryInstallAuthentication()
     plugin(Authentication).configure {
         oauth("auth-oauth-google") {
             with(env.config.config("google.oauth")) {

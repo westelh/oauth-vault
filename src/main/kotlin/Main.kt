@@ -9,8 +9,6 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
 fun Application.configureRoot() {
-    install(Authentication)
-
     routing {
         get("/") {
             if (call.request.isFromBrowser()) {
