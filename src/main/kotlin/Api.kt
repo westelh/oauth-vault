@@ -26,7 +26,7 @@ fun Application.configureApi(httpClient: HttpClient) {
             with(this@configureApi.environment.config.config("vault.jwt")) {
                 val audience = property("audience").getString()
                 val issuer = property("issuer").getString()
-                val provider = VaultIdentityTokenProvider(service.identity)
+                val provider = VaultIdentityTokenKeyProvider(service.identity)
 
                 verifier(provider) {
                     withAudience(audience)
@@ -124,20 +124,18 @@ private suspend fun RoutingContext.ensureJWT(block: suspend RoutingContext.(goog
     }
 }
 
-class VaultIdentityTokenProvider(val identity: Identity): JwkProvider {
+class VaultIdentityTokenKeyProvider(val identity: Identity): JwkProvider {
     companion object {
         fun decodeJwk(json: JsonElement): Jwk = Jwk.fromValues(Json.decodeFromJsonElement<Map<String, String>>(json))
     }
 
-    override fun get(keyId: String): Jwk {
-        return runBlocking {
-            identity.getIdentityTokenIssuerKeys().mapCatching {
-                it.keys.find { it.keyId == keyId }.let { found ->
-                    decodeJwk(Json.encodeToJsonElement(found))
-                }
-            }.getOrElse {
-                throw SigningKeyNotFoundException("Signing key for id $keyId not found", it)
+    override fun get(keyId: String): Jwk = runBlocking {
+        identity.getIdentityTokenIssuerKeys().mapCatching {
+            it.keys.find { it.keyId == keyId }.let { found ->
+                decodeJwk(Json.encodeToJsonElement(found))
             }
+        }.getOrElse {
+            throw SigningKeyNotFoundException("Signing key for id $keyId not found", it)
         }
     }
 }
