@@ -44,3 +44,6 @@ dependencies {
     testImplementation(libs.kotest.assertions.ktor)
 }
 
+tasks.compileTestKotlin {
+    compilerOptions.freeCompilerArgs.add("-Xdebug")
+}
