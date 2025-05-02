@@ -5,20 +5,18 @@ import google.api.GoogleRefreshTokenRequest
 import google.api.GoogleRefreshTokenResponse
 import io.ktor.client.*
 import io.ktor.client.call.*
-import io.ktor.client.engine.HttpClientEngine
-import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.http.*
-import io.ktor.serialization.kotlinx.json.*
-import io.ktor.server.config.ApplicationConfig
+import io.ktor.server.auth.OAuthServerSettings
 
-interface GoogleService {
-    val client: HttpClient
-    val clientId: String
-    val clientSecret: String
+class GoogleService(val http: HttpClient, val config: Config) {
+    interface Config {
+        val clientId: String
+        val clientSecret: String
+    }
 
     suspend fun getUser(accessToken: String): Result<UserProfile> {
-        val res = client.get("https://www.googleapis.com/userinfo/v2/me") {
+        val res = http.get("https://www.googleapis.com/userinfo/v2/me") {
             bearerAuth(accessToken)
         }
         return if (res.status.isSuccess()) {
@@ -30,7 +28,7 @@ interface GoogleService {
 
     suspend fun refreshUserToken(refreshToken: String): Result<GoogleRefreshTokenResponse> {
         val req = buildRefreshRequest(refreshToken)
-        val res = client.post("https://oauth2.googleapis.com/token") {
+        val res = http.post("https://oauth2.googleapis.com/token") {
             headers {
                 contentType(ContentType.Application.Json)
             }
@@ -44,11 +42,18 @@ interface GoogleService {
     }
 
     private fun buildRefreshRequest(refreshToken: String): GoogleRefreshTokenRequest {
-        return GoogleRefreshTokenRequest(clientId, clientSecret, "refresh_token", refreshToken)
+        return GoogleRefreshTokenRequest(config.clientId, config.clientSecret, "refresh_token", refreshToken)
     }
-}
 
-class ApplicationGoogleService(config: ApplicationConfig, override val client: HttpClient): GoogleService {
-    override val clientId: String = config.property("google.oauth.clientId").getString()
-    override val clientSecret: String = config.property("google.oauth.clientSecret").getString()
+    fun oauth2Settings(scopes: List<String>): OAuthServerSettings.OAuth2ServerSettings =
+        OAuthServerSettings.OAuth2ServerSettings(
+            name = "google",
+            authorizeUrl = "https://accounts.google.com/o/oauth2/auth",
+            accessTokenUrl = "https://accounts.google.com/o/oauth2/token",
+            requestMethod = HttpMethod.Post,
+            clientId = config.clientId,
+            clientSecret = config.clientSecret,
+            defaultScopes = scopes,
+            extraAuthParameters = listOf("access_type" to "offline")
+        )
 }

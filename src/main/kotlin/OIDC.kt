@@ -21,7 +21,7 @@ fun Application.configureVaultOIDC(httpClient: HttpClient) {
         oauth("auth-oauth-vault") {
             val identity = this@configureVaultOIDC.createIdService(httpClient)
 
-            with(this@configureVaultOIDC.environment.config.config("vault.oauth")) {
+            with(this@configureVaultOIDC.environment.config.config("user.oidc")) {
                 val providerName = property("provider").getString()
                 val clientName = property("client").getString()
                 val callback = property("callback").getString()

@@ -13,25 +13,25 @@ ktor:
         watch:
             - classes
 
-google:
-    oauth:
-        clientId: "$OAUTH_CLIENT_ID"
-        clientSecret: "$OAUTH_CLIENT_SECRET"
-        callback: "$OAUTH_CALLBACK"
-
 vault:
     addr: "$VAULT_ADDR"
     token: "$VAULT_TOKEN"
     kv: "$VAULT_KV"
 
-    oauth:
+user:
+    oidc:
         provider: default
         client: oauth-vault
         callback: "http://localhost:8080/user/oidc/callback"
         scopes:
             - openid
-            - meta
             - google
+
+oauth:
+    google:
+        clientId: "$OAUTH_CLIENT_ID"
+        clientSecret: "$OAUTH_CLIENT_SECRET"
+        callback: "$OAUTH_CALLBACK"
 
 api:
     auth:

@@ -1,6 +1,6 @@
 package dev.westelh
 
-import dev.westelh.service.ApplicationGoogleService
+import dev.westelh.service.GoogleService
 import dev.westelh.service.IdentityService
 import dev.westelh.service.KvService
 import dev.westelh.vault.Config
@@ -12,7 +12,7 @@ import io.ktor.client.engine.apache.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
-import io.ktor.server.auth.Authentication
+import io.ktor.server.auth.*
 import io.ktor.server.config.*
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
@@ -79,7 +79,7 @@ fun Application.createIdService(client: HttpClient): IdentityService {
     return IdentityService(createVaultEngine(client).identity())
 }
 
-fun Application.createGoogleService(client: HttpClient): ApplicationGoogleService {
-    return ApplicationGoogleService(environment.config, client)
+fun Application.createGoogleService(client: HttpClient): GoogleService {
+    return GoogleService(client, ApplicationGoogleConfig(environment.config))
 }
 
