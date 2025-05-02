@@ -30,7 +30,7 @@ class UserPageTest {
             config = MapApplicationConfig(
                 "vault.addr" to "http://vault.example.com",
                 "vault.kv" to "kv",
-                "vault.oauth.provider" to "default",
+                "user.oidc.provider" to "default",
             )
         }
         val testHttp = createClient {

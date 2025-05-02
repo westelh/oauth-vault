@@ -41,7 +41,7 @@ fun Application.configureUserPage(httpClient: HttpClient) {
                                 p { +"Current user session is valid until ${session.expiresAt()}" }
 
                                 val identity = createIdService(httpClient)
-                                val providerName = environment.config.property("vault.oauth.provider").getString()
+                                val providerName = environment.config.property("user.oidc.provider").getString()
                                 val google =
                                     identity.getGoogleIdFromOidcProvider(providerName, session.accessToken).onFailure {
                                         log.warn("Failed to get Google ID from OIDC provider: ${it.message}")

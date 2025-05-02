@@ -24,7 +24,7 @@ fun Application.configureGoogleOAuth(httpClient: HttpClient) {
     tryInstallAuthentication()
     plugin(Authentication).configure {
         oauth("auth-oauth-google") {
-            val callback = env.config.config("oauth.google.callback").toString()
+            val callback = env.config.property("oauth.google.callback").getString()
             urlProvider = { callback }
             client = httpClient
             providerLookup = {
@@ -55,6 +55,7 @@ fun Application.configureGoogleOAuth(httpClient: HttpClient) {
                 get("/callback") {
                     val principal: OAuthAccessTokenResponse.OAuth2 = call.authentication.principal()!!
                     initUser(principal).onSuccess {
+                        log.info("Initialized a new user")
                         call.respondRedirect("/")
                     }.onFailure { e ->
                         log.warn("Failed to initialize user: ${e.message}")
