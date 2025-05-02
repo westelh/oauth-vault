@@ -18,27 +18,33 @@ import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.encodeToJsonElement
 
 fun Application.configureApi(httpClient: HttpClient) {
+    val apiConfig = environment.config.config("api")
+    val unsafe = apiConfig.propertyOrNull("unsafe")?.getString()?.toBoolean() ?: false
+
+    if (unsafe) {
+        log.warn("Unsafe API mode is enabled. This should only be used for development.")
+    }
+
     tryInstallAuthentication()
     plugin(Authentication).configure {
         val service = this@configureApi.createIdService(httpClient)
 
         jwt("auth-jwt") {
-            with(this@configureApi.environment.config.config("vault.jwt")) {
-                val audience = property("audience").getString()
-                val issuer = property("issuer").getString()
-                val provider = VaultIdentityTokenKeyProvider(service.identity)
+            val jwtConfig = apiConfig.config("auth.jwt")
+            val audience = jwtConfig.property("audience").getString()
+            val issuer = jwtConfig.property("issuer").getString()
+            val provider = VaultIdentityTokenKeyProvider(service.identity)
 
-                verifier(provider) {
-                    withAudience(audience)
-                    withIssuer(issuer)
-                    withClaimPresence("google_id")
-                }
-                validate { credential ->
-                    JWTPrincipal(credential.payload)
-                }
-                challenge { _, _ ->
-                    call.respond(HttpStatusCode.Unauthorized, "Token is not valid or has expired")
-                }
+            verifier(provider) {
+                withAudience(audience)
+                withIssuer(issuer)
+                withClaimPresence("google_id")
+            }
+            validate { credential ->
+                JWTPrincipal(credential.payload)
+            }
+            challenge { _, _ ->
+                call.respond(HttpStatusCode.Unauthorized, "Token is not valid or has expired")
             }
         }
     }
@@ -54,7 +60,7 @@ fun Application.configureApi(httpClient: HttpClient) {
     }
 
     routing {
-        authenticate("auth-jwt") {
+        authenticate("auth-jwt", optional = unsafe) {
             route("/api") {
                 get("/user/id") {
                     ensureJWT { googleID ->
@@ -124,7 +130,7 @@ private suspend fun RoutingContext.ensureJWT(block: suspend RoutingContext.(goog
     }
 }
 
-class VaultIdentityTokenKeyProvider(val identity: Identity): JwkProvider {
+class VaultIdentityTokenKeyProvider(val identity: Identity) : JwkProvider {
     companion object {
         fun decodeJwk(json: JsonElement): Jwk = Jwk.fromValues(Json.decodeFromJsonElement<Map<String, String>>(json))
     }
