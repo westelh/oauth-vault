@@ -34,8 +34,6 @@ vault:
             - google
 
 api:
-    unsafe:
-        enabled: false
     auth:
         jwt:
             issuer: "$VAULT_JWK_ISSUER"

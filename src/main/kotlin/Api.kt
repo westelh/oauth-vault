@@ -19,11 +19,6 @@ import kotlinx.serialization.json.encodeToJsonElement
 
 fun Application.configureApi(httpClient: HttpClient) {
     val apiConfig = environment.config.config("api")
-    val unsafe = apiConfig.propertyOrNull("unsafe")?.getString()?.toBoolean() ?: false
-
-    if (unsafe) {
-        log.warn("Unsafe API mode is enabled. This should only be used for development.")
-    }
 
     tryInstallAuthentication()
     plugin(Authentication).configure {
@@ -31,14 +26,14 @@ fun Application.configureApi(httpClient: HttpClient) {
 
         jwt("auth-jwt") {
             val jwtConfig = apiConfig.config("auth.jwt")
-            val audience = jwtConfig.property("audience").getString()
-            val issuer = jwtConfig.property("issuer").getString()
-            val provider = VaultIdentityTokenKeyProvider(service.identity)
 
-            verifier(provider) {
-                withAudience(audience)
-                withIssuer(issuer)
-                withClaimPresence("google_id")
+            verifier(VaultIdentityTokenKeyProvider(service.identity)) {
+                jwtConfig.propertyOrNull("audience")?.getString()?.let { aud ->
+                    withAudience(aud)
+                }
+                jwtConfig.propertyOrNull("issuer")?.getString()?.let { iss ->
+                    withIssuer(iss)
+                }
             }
             validate { credential ->
                 JWTPrincipal(credential.payload)
@@ -60,7 +55,7 @@ fun Application.configureApi(httpClient: HttpClient) {
     }
 
     routing {
-        authenticate("auth-jwt", optional = unsafe) {
+        authenticate("auth-jwt") {
             route("/api") {
                 get("/user/id") {
                     ensureJWT { googleID ->
