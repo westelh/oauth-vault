@@ -3,6 +3,8 @@ package dev.westelh
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import dev.westelh.vault.api.identity.response.GetIdentityTokenIssuerKeysResponse
+import dev.westelh.vault.api.kv.v2.response.GetSecretMetadataResponse
+import dev.westelh.vault.api.kv.v2.response.GetSecretMetadataResponseData
 import io.kotest.matchers.shouldBe
 import io.ktor.client.*
 import io.ktor.client.request.*
@@ -15,6 +17,7 @@ import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
+import kotlinx.serialization.json.Json
 import java.security.KeyPairGenerator
 import java.security.interfaces.RSAPrivateKey
 import java.security.interfaces.RSAPublicKey
@@ -28,23 +31,21 @@ private const val fakeVaultServerHost = "http://vault.example.com"
 class ApiTest {
     private val keyPair = KeyPairGenerator.getInstance("RSA").generateKeyPair()
     private val mockJWKS = mockServerKeyResponse(keyPair.public as RSAPublicKey)
-    private val testConfig = MapApplicationConfig(
+    private val minimumConfig = mutableListOf<Pair<String, String>>(
         "vault.addr" to fakeVaultServerHost,
         "api.auth.jwt.audience" to "test-audience",
         "api.auth.jwt.issuer" to "test-issuer",
     )
 
-    fun testApiModule(block: suspend ApplicationTestBuilder.() -> Unit) = testApplication {
-        environment {
-            config = testConfig
-        }
-        application { configureApi(createTestClient(this@testApplication.client)) }
-    }
-
     @Test
-    fun testGetUserId() = testApiModule {
+    fun testGetUserId() = testApplication {
         val testHttp = createTestClient(client)
-
+        environment {
+            config = MapApplicationConfig(minimumConfig)
+        }
+        application {
+            configureApi(testHttp)
+        }
         externalServices {
             mockVaultServer(fakeVaultServerHost)
         }
