@@ -1,14 +1,17 @@
 package dev.westelh
 
 import dev.westelh.vault.Vault
+import io.ktor.client.plugins.logging.Logging
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.Authentication
+import io.ktor.server.plugins.calllogging.CallLogging
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
 fun Application.configureRoot() {
+    install(CallLogging)
     routing {
         get("/") {
             if (call.request.isFromBrowser()) {
