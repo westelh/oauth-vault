@@ -15,6 +15,7 @@ import kotlinx.html.a
 import kotlinx.html.body
 import kotlinx.html.button
 import kotlinx.html.h1
+import kotlinx.html.h2
 import kotlinx.html.onClick
 import kotlinx.html.p
 import kotlinx.html.title
@@ -28,7 +29,11 @@ fun Application.configureUserPage(httpClient: HttpClient) {
     routing {
         route("/user") {
             get("/summary") {
-                val session = getUserSession(call)
+                val session = call.sessions.get<OAuthCodes>()
+                val identity = createIdService(httpClient)
+                val kv = createKvService(httpClient)
+                val providerName = environment.config.property("user.oidc.provider").getString()
+                val tz = TimeZone.of("Asia/Tokyo")
 
                 call.respondHtml(HttpStatusCode.OK) {
                     head {
@@ -37,43 +42,33 @@ fun Application.configureUserPage(httpClient: HttpClient) {
                     body {
                         if (session != null) {
                             runBlocking {
-                                h1 { +"You are authorized via Vault OIDC" }
-                                p { +"Current user session is valid until ${session.expiresAt()}" }
+                                identity.getGoogleIdFromOidcProvider(providerName, session.accessToken).onSuccess {
+                                    h1 { +"You are authorized via Vault OIDC" }
+                                    p { +"Current user session is valid until ${session.expiresAt().toLocalDateTime(tz)}" }
 
-                                val identity = createIdService(httpClient)
-                                val providerName = environment.config.property("user.oidc.provider").getString()
-                                val google =
-                                    identity.getGoogleIdFromOidcProvider(providerName, session.accessToken).onFailure {
-                                        log.warn("Failed to get Google ID from OIDC provider: ${it.message}")
-                                    }.map {
-                                        it.id
-                                    }.getOrNull()
-                                p { +"Google ID: $google" }
-
-                                if (google != null) {
-                                    val kv = createKvService(httpClient)
-                                    kv.getUserOauthCodes(google).onSuccess {
-                                        h1 { +"User OAuth Codes" }
-                                        p { +"Access Token: ${it.accessToken}" }
-                                        p { +"Refresh Token: ${it.refreshToken}" }
-                                        p { +"Created at ${it.createdAt.toLocalDateTime(TimeZone.of("Asia/Tokyo"))}" }
-                                        p { +"Expires at ${it.expiresAt().toLocalDateTime(TimeZone.of("Asia/Tokyo"))}" }
+                                    kv.getUserOauthCodes(it.id).onSuccess {
+                                        h2 { +"User OAuth Codes" }
+                                        p { +"Access Token: ${if (it.accessToken.isNotBlank()) "✅ Present" else "❓ Missing"}" }
+                                        p { +"Refresh Token: ${if (!it.refreshToken.isNullOrBlank()) "✅ Present" else "❓ Missing"}" }
+                                        p { +"Created at ${it.createdAt.toLocalDateTime(tz)}" }
+                                        p { +"Expires at ${it.expiresAt().toLocalDateTime(tz)}" }
                                     }.onFailure {
-                                        log.warn("Failed to get user OAuth codes: ${it.message}")
+                                        h2 { +"OAuth codes not found" }
+                                        button {
+                                            onClick = "location.href='/google/login'"
+                                            +"Google Login"
+                                        }
                                     }
+                                }.onFailure {
+                                    h1 { +"You are not registered user" }
                                 }
                             }
-                        } else {
+                        }
+                        else {
                             h1 { +"No session" }
                             p { +"No user session found. Please log in." }
                             p {
                                 a(href = "/user/oidc/login") { +"Log in" }
-                            }
-                        }
-                        h1 {
-                            button {
-                                onClick = "location.href='/google/login'"
-                                +"Google Login"
                             }
                         }
                     }
@@ -81,8 +76,4 @@ fun Application.configureUserPage(httpClient: HttpClient) {
             }
         }
     }
-}
-
-private fun getUserSession(call: ApplicationCall): OAuthCodes? {
-    return call.sessions.get<OAuthCodes>()
 }
