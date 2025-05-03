@@ -4,6 +4,7 @@ import com.auth0.jwk.Jwk
 import com.auth0.jwk.JwkProvider
 import com.auth0.jwk.SigningKeyNotFoundException
 import com.auth0.jwt.interfaces.Payload
+import dev.westelh.service.refreshOauthCode
 import dev.westelh.vault.Vault
 import dev.westelh.vault.api.identity.Identity
 import io.ktor.client.*
@@ -51,7 +52,7 @@ fun Application.configureApi(httpClient: HttpClient) {
             route("/api") {
                 get("/user/id") {
                     call.principal<JWTPrincipal>()?.payload?.getGoogleClaim()?.let {
-                       call.respond(it)
+                        call.respond(it)
                     }
                 }
 
@@ -84,23 +85,10 @@ fun Application.configureApi(httpClient: HttpClient) {
                         val kv = createKvService(httpClient)
                         val google = createGoogleService(httpClient)
 
-                        kv.getUserOauthCodes(it).onSuccess { codes ->
-                            val refreshToken = codes.refreshToken
-                            if (refreshToken != null) {
-                                runCatching {
-                                    val new = google.refreshUserToken(refreshToken).getOrThrow()
-                                    kv.patchUserOauthCodes(it, new).getOrThrow()
-                                    call.respond("Token refreshed")
-                                }.onFailure { error ->
-                                    call.respond(HttpStatusCode.BadRequest,"Failed to refresh token")
-                                    throw error
-                                }
-                            } else {
-                                call.respond(HttpStatusCode.BadRequest, "Refresh token is not present")
-                                throw NullPointerException("User refresh token is not present")
-                            }
+                        refreshOauthCode(it, kv, google).onSuccess {
+                            call.respond("Token refreshed")
                         }.onFailure { error ->
-                            call.respond("Failed to read user token")
+                            call.respond(HttpStatusCode.BadRequest, error.message.orEmpty())
                             throw error
                         }
                     }
@@ -109,8 +97,8 @@ fun Application.configureApi(httpClient: HttpClient) {
                 post("/token/delete") {
                     call.principal<JWTPrincipal>()?.payload?.getGoogleClaim()?.let {
                         val kv = createKvService(httpClient)
-                        kv.deleteUserOauthCodes(it).getOrThrow()
                         call.respond("Token deleted (if it existed)")
+                        kv.deleteUserOauthCodes(it).getOrThrow()
                     }
                 }
             }
