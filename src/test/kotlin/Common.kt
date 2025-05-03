@@ -1,7 +1,10 @@
 package dev.westelh
 
+import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.*
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.http.*
+import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.utils.io.*
 import kotlinx.serialization.json.Json
@@ -30,5 +33,11 @@ fun createMockEngineFromResource(resourcePath: String, status: HttpStatusCode = 
             status = status,
             headers = jsonContent
         )
+    }
+}
+
+fun createTestClient(client: HttpClient) = client.config {
+    install(ContentNegotiation) {
+        json()
     }
 }

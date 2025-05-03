@@ -3,10 +3,7 @@ package dev.westelh
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import dev.westelh.vault.api.identity.response.GetIdentityTokenIssuerKeysResponse
-import dev.westelh.vault.api.kv.v2.response.GetSecretMetadataResponse
-import dev.westelh.vault.api.kv.v2.response.GetSecretMetadataResponseData
 import io.kotest.matchers.shouldBe
-import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -17,7 +14,6 @@ import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
-import kotlinx.serialization.json.Json
 import java.security.KeyPairGenerator
 import java.security.interfaces.RSAPrivateKey
 import java.security.interfaces.RSAPublicKey
@@ -53,12 +49,6 @@ class ApiTest {
         val res = testHttp.get("/api/user/id") { bearerAuth(signedJWT()) }
         res.status.shouldBe(HttpStatusCode.OK)
         res.bodyAsText().shouldBe("1234567890")
-    }
-
-    private fun createTestClient(client: HttpClient) = client.config {
-        install(io.ktor.client.plugins.contentnegotiation.ContentNegotiation) {
-            json()
-        }
     }
 
     private fun signedJWT(): String {
