@@ -1,3 +1,3 @@
-path "kv/data/oauth-vault/config" {
+path "kv/data/secrets/oauth-vault" {
   capabilities = ["read"]
 }
