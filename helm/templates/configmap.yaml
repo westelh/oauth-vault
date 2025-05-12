@@ -1,4 +1,4 @@
-{{- if .Values.vault.enabled }}
+{{- if .Values.vault.sidecar.enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -9,7 +9,7 @@ data:
   config.hcl: |
     auto_auth {
       method {
-      {{- .Values.vault.config.method | nindent 8 -}}
+      {{- .Values.vault.sidecar.config.method | nindent 8 -}}
       }
       sink "file" {
         config = {
@@ -24,7 +24,7 @@ data:
     }
 
     vault {
-      address = {{ .Values.vault.config.address | quote }}
+      address = {{ .Values.vault.sidecar.config.address | quote }}
     }
   config.ctmpl: |
     {{`{{- with secret "kv/data/secrets/oauth-vault" -}}`}}
@@ -68,7 +68,7 @@ data:
   config.hcl: |
     auto_auth {
       method {
-      {{- .Values.vault.config.method | nindent 8 -}}
+      {{- .Values.vault.sidecar.config.method | nindent 8 -}}
       }
       sink "file" {
         config = {
@@ -77,7 +77,7 @@ data:
       }
     }
     vault {
-      address = {{ .Values.vault.config.address | quote }}
+      address = {{ .Values.vault.sidecar.config.address | quote }}
     }
     api_proxy {
       use_auto_auth_token = true

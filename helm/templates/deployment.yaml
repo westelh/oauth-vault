@@ -60,9 +60,9 @@ spec:
           resources:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- if or .Values.vault.enabled .Values.volumeMounts }}
+          {{- if or .Values.vault.sidecar.enabled .Values.volumeMounts }}
           volumeMounts:
-          {{- if .Values.vault.enabled }}
+          {{- if .Values.vault.sidecar.enabled }}
             - name: vault-secret
               mountPath: /vault/secrets
           {{- end }}
@@ -70,10 +70,10 @@ spec:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           {{- end }}
-        {{- if .Values.vault.enabled }}
+        {{- if .Values.vault.sidecar.enabled }}
         - name: vault-agent
-          image: "{{ .Values.vault.container.repository }}:{{ .Values.vault.container.tag }}"
-          imagePullPolicy: {{ .Values.vault.container.pullPolicy }}
+          image: "{{ .Values.vault.sidecar.container.repository }}:{{ .Values.vault.sidecar.container.tag }}"
+          imagePullPolicy: {{ .Values.vault.sidecar.container.pullPolicy }}
           command:
             - /bin/sh
             - -c
@@ -88,8 +88,8 @@ spec:
             {{- toYaml .Values.volumeMounts | nindent 12 }}
             {{- end }}
         - name: vault-proxy
-          image: "{{ .Values.vault.container.repository }}:{{ .Values.vault.container.tag }}"
-          imagePullPolicy: {{ .Values.vault.container.pullPolicy }}
+          image: "{{ .Values.vault.sidecar.container.repository }}:{{ .Values.vault.sidecar.container.tag }}"
+          imagePullPolicy: {{ .Values.vault.sidecar.container.pullPolicy }}
           command:
             - /bin/sh
             - -c
@@ -102,9 +102,9 @@ spec:
             {{- toYaml .Values.volumeMounts | nindent 12 }}
             {{- end }}
         {{- end }}
-      {{- if or .Values.vault.enabled .Values.volumes }}
+      {{- if or .Values.vault.sidecar.enabled .Values.volumes }}
       volumes:
-      {{- if .Values.vault.enabled }}
+      {{- if .Values.vault.sidecar.enabled }}
         - name: vault-secret
           emptyDir: {}
         - name: vault-agent
