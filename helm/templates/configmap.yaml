@@ -24,7 +24,7 @@ data:
     }
 
     vault {
-      address = {{ .Values.vault.sidecar.config.address | quote }}
+      address = {{ .Values.vault.server.address | quote }}
     }
   config.ctmpl: |
     {{`{{- with secret "kv/data/secrets/oauth-vault" -}}`}}
@@ -77,7 +77,7 @@ data:
       }
     }
     vault {
-      address = {{ .Values.vault.sidecar.config.address | quote }}
+      address = {{ .Values.vault.server.address | quote }}
     }
     api_proxy {
       use_auto_auth_token = true

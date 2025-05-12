@@ -123,6 +123,8 @@ oauthVault:
     - dev.westelh.ApplicationKt.user
 
 vault:
+  server:
+    address: "http://host.docker.internal:8200"
   sidecar:
     enabled: true
     container:
@@ -135,4 +137,3 @@ vault:
         config = {
           role = "colima"
         }
-      address: "http://host.docker.internal:8200"
