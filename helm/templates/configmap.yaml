@@ -18,7 +18,7 @@ data:
 
     template {
       source      = "/vault/agent/config.ctmpl"
-      destination = "/vault/secrets/config.yaml"
+      destination = {{ include "oauth-vault.applicationConfigPath" . | quote }}
     }
 
     vault {
@@ -73,7 +73,7 @@ data:
       }
     }
     vault {
-      address = {{ .Values.vault.server | quote }}
+      address = {{ .Values.vault.server.address | quote }}
     }
     api_proxy {
       use_auto_auth_token = true

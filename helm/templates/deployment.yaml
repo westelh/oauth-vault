@@ -44,10 +44,8 @@ spec:
             - name: http
               containerPort: {{ .Values.service.port }}
               protocol: TCP
-          {{- if .Values.oauthVault.config.path }}
           args:
-            - -config={{ .Values.oauthVault.config.path }}
-          {{- end }}
+            - -config={{ include "oauth-vault.applicationConfigPath" . }}
           {{- with .Values.livenessProbe }}
           livenessProbe:
             {{- toYaml . | nindent 12 }}

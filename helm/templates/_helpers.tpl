@@ -97,3 +97,7 @@ method {
 }
 {{- end -}}
 {{- end }}
+
+{{- define "oauth-vault.applicationConfigPath" -}}
+/vault/secrets/config.yaml
+{{- end }}

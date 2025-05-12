@@ -113,8 +113,6 @@ tolerations: []
 affinity: {}
 
 oauthVault:
-  config:
-    path: "/vault/secrets/config.yaml"
   modules:
     - dev.westelh.ApplicationKt.root
     - dev.westelh.ApplicationKt.oauth
