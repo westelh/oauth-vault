@@ -74,3 +74,30 @@ Create the name of the ConfigMap for Vault Proxy
 {{- define "oauth-vault.proxyConfigmapName" -}}
 {{ include "oauth-vault.fullname" . }}-proxy-config
 {{- end }}
+
+{{/*
+Create the name of the ConfigMap for Vault
+*/}}
+{{- define "oauth-vault.vaultConfigmapName" -}}
+{{ include "oauth-vault.fullname" . }}-vault-config
+{{- end }}
+
+{{/*
+Create the auth config block for vault sidecars
+*/}}
+{{- define "oauth-vault.sidecarAuthMethod" -}}
+{{- with .Values.vault.server.auth -}}
+method {
+  {{- with .kubernetes }}
+  type = "kubernetes"
+  config = {
+    role = {{ .role | quote }}
+  }
+  {{- end }}
+}
+{{- end -}}
+{{- end }}
+
+{{- define "oauth-vault.applicationConfigPath" -}}
+/vault/secrets/config.yaml
+{{- end }}

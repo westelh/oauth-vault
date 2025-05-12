@@ -113,43 +113,22 @@ tolerations: []
 affinity: {}
 
 oauthVault:
-  config:
-    path: "/vault/secrets/config.yaml"
+  modules:
+    - dev.westelh.ApplicationKt.root
+    - dev.westelh.ApplicationKt.oauth
+    - dev.westelh.ApplicationKt.oidc
+    - dev.westelh.ApplicationKt.api
+    - dev.westelh.ApplicationKt.user
 
 vault:
-  enabled: true
-  container:
-    repository: "hashicorp/vault"
-    tag: "latest"
-    pullPolicy: IfNotPresent
-  config:
-    method: |
-      type = "kubernetes"
-      config = {
-        role = "vault-oauth"
-      }
-    address: "https://vault.example.com:8200"
-  agent:
-    template: |
-        {{- with secret "secret/data/my-app/config" -}}
-        ktor:
-          application:
-            modules: ["dev.westelh.ApplicationKt.module"]
-          deployment:
-            host: 0.0.0.0
-            port: 8080
-        google:
-          oauth:
-            clientId: {{ .Data.data.client_id }}
-            clientSecret: {{ .Data.data.client_secret }}
-            callback: "https://ov.vault.example.com:8200/callback"
-        vault:
-          addr: "https://vault.example.com:8200"
-          {{ with secret "/auth/token/create" "" }}
-          token: {{ .Auth.ClientToken }}
-          {{ end }}
-          kv: kv
-          jwt:
-            issuer: "https://vault.example.com:8200/v1/identity/oidc"
-            audience: "xxxxxxxxxxxxx"
-        {{- end }}
+  server:
+    address: "http://host.docker.internal:8200"
+    auth:
+      kubernetes:
+        role: colima
+  sidecar:
+    enabled: true
+    container:
+      repository: "hashicorp/vault"
+      tag: "latest"
+      pullPolicy: IfNotPresent
