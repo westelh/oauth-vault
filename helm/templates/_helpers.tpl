@@ -102,18 +102,10 @@ method {
 /vault/secrets/config.yaml
 {{- end }}
 
-{{- define "oauth-vault.publicUrl" -}}
-{{- if .Values.ingress.tls -}}
-https://{{ index (index .Values.ingress.hosts 0) "host" }}
-{{- else -}}
-http://{{ index (index .Values.ingress.hosts 0) "host" }}
-{{- end -}}
-{{- end -}}
-
 {{- define "oauth-vault.userOidcCallbackUrl" -}}
-{{- printf "%s/user/oidc/callback" (include "oauth-vault.publicUrl" .) -}}
+{{ .Values.oauthVault.publicUrl }}/user/oidc/callback
 {{- end -}}
 
 {{- define "oauth-vault.googleOidcCallbackUrl" -}}
-{{- printf "%s/google/callback" (include "oauth-vault.publicUrl" .) -}}
+{{ .Values.oauthVault.publicUrl }}/google/callback
 {{- end -}}
