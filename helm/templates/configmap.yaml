@@ -37,7 +37,7 @@ data:
       oidc:
         provider: default
         client: oauth-vault
-        callback: {{ include "oauth-vault.userOidcCallbackUrl" . }}
+        callback: {{ include "oauth-vault.userOidcCallbackUrl" . | quote }}
         scopes:
           - openid
           - google
@@ -45,7 +45,7 @@ data:
       google:
         clientId: {{`{{ .Data.data.client_id }}`}}
         clientSecret: {{`{{ .Data.data.client_secret }}`}}
-        callback: {{ include "oauth-vault.googleOidcCallbackUrl" . }}
+        callback: {{ include "oauth-vault.googleOidcCallbackUrl" . | quote }}
     api:
       auth:
         jwt:
