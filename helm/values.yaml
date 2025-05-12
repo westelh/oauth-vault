@@ -126,30 +126,42 @@ vault:
     method: |
       type = "kubernetes"
       config = {
-        role = "vault-oauth"
+        role = "colima"
       }
-    address: "https://vault.example.com:8200"
+    address: "http://host.docker.internal:8200"
   agent:
     template: |
-        {{- with secret "secret/data/my-app/config" -}}
+        {{- with secret "kv/data/secrets/oauth-vault" -}}
         ktor:
           application:
-            modules: ["dev.westelh.ApplicationKt.module"]
+            modules:
+              - dev.westelh.ApplicationKt.root
+              - dev.westelh.ApplicationKt.oauth
+              - dev.westelh.ApplicationKt.oidc
+              - dev.westelh.ApplicationKt.api
+              - dev.westelh.ApplicationKt.user
           deployment:
             host: 0.0.0.0
             port: 8080
-        google:
-          oauth:
+        user:
+          oidc:
+            provider: default
+            client: oauth-vault
+            callback: "http://localhost:8080/user/oidc/callback"
+            scopes:
+              - openid
+              - google
+        oauth:
+          google:
             clientId: {{ .Data.data.client_id }}
             clientSecret: {{ .Data.data.client_secret }}
-            callback: "https://ov.vault.example.com:8200/callback"
+            callback: "http://localhost:8080/google/callback"
+        api:
+          auth:
+            jwt:
+              issuer: "xxxxxx"
+              audience: "xxxxx"
         vault:
-          addr: "https://vault.example.com:8200"
-          {{ with secret "/auth/token/create" "" }}
-          token: {{ .Auth.ClientToken }}
-          {{ end }}
+          addr: "http://host.docker.internal:8200"
           kv: kv
-          jwt:
-            issuer: "https://vault.example.com:8200/v1/identity/oidc"
-            audience: "xxxxxxxxxxxxx"
         {{- end }}
