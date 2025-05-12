@@ -8,9 +8,7 @@ metadata:
 data:
   config.hcl: |
     auto_auth {
-      method {
-      {{- .Values.vault.sidecar.config.method | nindent 8 -}}
-      }
+      {{ include "oauth-vault.sidecarAuthMethod" . | nindent 6 }}
       sink "file" {
         config = {
           path = "/home/vault/sink"
@@ -67,9 +65,7 @@ metadata:
 data:
   config.hcl: |
     auto_auth {
-      method {
-      {{- .Values.vault.sidecar.config.method | nindent 8 -}}
-      }
+      {{- include "oauth-vault.sidecarAuthMethod" . | nindent 6 }}
       sink "file" {
         config = {
           path = "/home/vault/sink"
@@ -77,7 +73,7 @@ data:
       }
     }
     vault {
-      address = {{ .Values.vault.server.address | quote }}
+      address = {{ .Values.vault.server | quote }}
     }
     api_proxy {
       use_auto_auth_token = true
@@ -87,4 +83,3 @@ data:
       tls_disable = true
     }
 {{- end }}
-

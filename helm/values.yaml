@@ -125,15 +125,12 @@ oauthVault:
 vault:
   server:
     address: "http://host.docker.internal:8200"
+    auth:
+      kubernetes:
+        role: colima
   sidecar:
     enabled: true
     container:
       repository: "hashicorp/vault"
       tag: "latest"
       pullPolicy: IfNotPresent
-    config:
-      method: |
-        type = "kubernetes"
-        config = {
-          role = "colima"
-        }
