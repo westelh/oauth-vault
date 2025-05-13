@@ -52,7 +52,7 @@ data:
           issuer: {{ .Values.vault.server.identity.jwt.issuer | quote }}
           audience: {{ .Values.vault.server.identity.jwt.audience | quote }}
     vault:
-      addr: {{ .Values.vault.server.address | quote }}
+      addr: "127.0.0.1:8100"
       kv: kv
     {{`{{- end }}`}}
 ---
