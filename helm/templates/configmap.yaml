@@ -49,8 +49,8 @@ data:
     api:
       auth:
         jwt:
-          issuer: "xxxxxx"
-          audience: "xxxxx"
+          issuer: {{ .Values.vault.server.identity.jwt.issuer }}
+          audience: {{ .Values.vault.server.identity.jwt.audience }}
     vault:
       addr: "http://host.docker.internal:8200"
       kv: kv

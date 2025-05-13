@@ -126,7 +126,11 @@ vault:
     address: "http://host.docker.internal:8200"
     auth:
       kubernetes:
-        role: colima
+        role: oauth-vault
+    identity:
+      jwt:
+        issuer: ""
+        audience: ""
   sidecar:
     enabled: true
     container:
