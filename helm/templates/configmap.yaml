@@ -52,7 +52,7 @@ data:
           issuer: {{ .Values.vault.server.identity.jwt.issuer | quote }}
           audience: {{ .Values.vault.server.identity.jwt.audience | quote }}
     vault:
-      addr: "http://host.docker.internal:8200"
+      addr: {{ .Values.vault.server.address | quote }}
       kv: kv
     {{`{{- end }}`}}
 ---
