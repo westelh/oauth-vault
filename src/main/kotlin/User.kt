@@ -9,14 +9,13 @@ import io.ktor.server.html.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
 import kotlinx.coroutines.runBlocking
+import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlinx.html.a
 import kotlinx.html.body
-import kotlinx.html.button
 import kotlinx.html.h1
 import kotlinx.html.h2
-import kotlinx.html.onClick
 import kotlinx.html.p
 import kotlinx.html.title
 
@@ -52,15 +51,15 @@ fun Application.configureUserPage(httpClient: HttpClient) {
                                         p { +"Refresh Token: ${if (!it.refreshToken.isNullOrBlank()) "✅ Present" else "❓ Missing"}" }
                                         p { +"Created at ${it.createdAt.toLocalDateTime(tz)}" }
                                         p { +"Expires at ${it.expiresAt().toLocalDateTime(tz)}" }
+                                        if (it.expiresAt() < Clock.System.now()) {
+                                            a(href = "/google/login") { +"Login with Google" }
+                                        }
                                     }.onFailure {
                                         h2 { +"OAuth codes not found" }
-                                        button {
-                                            onClick = "location.href='/google/login'"
-                                            +"Google Login"
-                                        }
                                     }
-                                }.onFailure {
+                                }.onFailure { e ->
                                     h1 { +"You are not registered user" }
+                                    log.info(e.message)
                                 }
                             }
                         }
